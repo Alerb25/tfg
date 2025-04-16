@@ -2,14 +2,14 @@
 session_start();
 
 // Conexión a la base de datos
-$conexion = new mysqli("localhost", "usuario", "", "proyecto"); 
+$conexion = new mysqli("localhost", "usuario", "", "proyecto");
 
 if ($conexion->connect_error) {
     die("Error de conexión: " . $conexion->connect_error);
 }
 
-// Verificar si se ha enviado el formulario
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
+//Login 
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = $_POST["mail"];
     $password = $_POST["password"];
 
@@ -21,10 +21,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION["id_user"] = $usuario["Id_User"];
         $_SESSION["nombre"] = $usuario["Nombre"];
 
-        header("Location: panel.php"); // Página principal tras login
+        header("Location: index.php"); // Página principal tras login
         exit();
     } else {
         $error = "Correo o contraseña incorrectos";
+    }
+}
+
+//Registro
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
+    $mail = $_POST["new_mail"];
+    $password = $_POST["password"];
+    $nombre = $_POST["nombre"];
+    $p_apellido = $_POST["p_apellido"];
+    $s_apellido = $_POST["s_apellido"];
+
+    $verificar = "SELECT * FROM usuario WHERE mail='$mail'";
+    $existe = $conexion->query($verificar);
+
+    if ($existe->num_rows > 0) {
+        $error = "El correo ya existe";
+    } else {
+        $insertar = "INSERT INTO usuario (Nombre, Password, mail, p_apellido, s_apellido) VALUES ('$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
+
+        if ($conexion->query($insertar)) {
+            $exito = "Registro exitoso. Ahora puedes iniciar sesión";
+        } else {
+            $error = "Error al crear la cuenta";
+        }
     }
 }
 
@@ -45,7 +69,7 @@ echo "<!DOCTYPE html>
     <div class='login-box'>
         <h2>Iniciar Sesión</h2>";
 
-       
+
 
 echo "  <form method='POST' action=''>
             <input type='email' name='mail' placeholder='Correo electrónico' required>
@@ -55,4 +79,3 @@ echo "  <form method='POST' action=''>
     </div>
 </body>
 </html>";
-?>
