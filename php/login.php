@@ -56,26 +56,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
 echo "<!DOCTYPE html>
 <html>
 <head>
-    <title>Login - App de Notas</title>
+    <title>Login / Registro - App de Notas</title>
     <style>
-        body { font-family: Arial; background: #f4f4f4; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        input { display: block; margin-bottom: 10px; width: 100%; padding: 10px; }
+        body { font-family: Arial; background: #f4f4f4; display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding-top: 50px; }
+        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
+        input { width: 100%; padding: 10px; margin: 8px 0; }
         button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; }
-        .error { color: red; }
+        .error { color: red; margin-top: 10px; }
+        .exito { color: green; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class='login-box'>
-        <h2>Iniciar Sesión</h2>";
-
-
-
-echo "  <form method='POST' action=''>
-            <input type='email' name='mail' placeholder='Correo electrónico' required>
+    <div class='box'>
+        <h2>Iniciar Sesión</h2>
+        <form method='POST'>
+            <input type='email' name='mail' placeholder='Correo' required>
             <input type='password' name='password' placeholder='Contraseña' required>
-            <button type='submit'>Entrar</button>
+            <button type='submit' name='login'>Entrar</button>
+        </form>";
+
+        if (!empty($error)) echo "<p class='error'>$error</p>";
+        if (!empty($exito)) echo "<p class='exito'>$exito</p>";
+
+echo "  </div>
+
+    <div class='box'>
+        <h2>Crear Cuenta</h2>
+        <form method='POST'>
+            <input type='text' name='nombre' placeholder='Nombre' required>
+            <input type='text' name='p_apellido' placeholder='Primer Apellido' required>
+            <input type='text' name='s_apellido' placeholder='Segundo Apellido' required>
+            <input type='email' name='nuevo_mail' placeholder='Correo' required>
+            <input type='password' name='nueva_password' placeholder='Contraseña' required>
+            <button type='submit' name='registro'>Registrarse</button>
         </form>
     </div>
 </body>
 </html>";
+
+?>
