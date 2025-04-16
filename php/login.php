@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
         $_SESSION["id_user"] = $usuario["Id_User"];
         $_SESSION["nombre"] = $usuario["Nombre"];
 
-        header("Location: index.php"); // Página principal tras login
+        header("Location: panel.php"); // Página principal tras login
         exit();
     } else {
         $error = "Correo o contraseña incorrectos";
