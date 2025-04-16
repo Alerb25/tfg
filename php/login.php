@@ -2,7 +2,7 @@
 session_start();
 
 // Conexión a la base de datos
-$conexion = new mysqli("localhost", "root", "", "proyecto"); 
+$conexion = new mysqli("localhost", "usuario", "", "proyecto"); 
 
 if ($conexion->connect_error) {
     die("Error de conexión: " . $conexion->connect_error);
