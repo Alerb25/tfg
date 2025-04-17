@@ -3,10 +3,12 @@ create database proyecto;
 \c poryecto
 
 --Tables
+
 --Usuario
 create table usuario (Id_User interger(255), Nombre varchar(30), Password varchar(30), mail varchar(30), p_apellido varchar(30), s_apellido varchar(30));
 alter table usuario add primary key (Id_User);
 alter table usuario add constraint uk_mail unique (mail);
+
 --Notas
 create table notas (Id_Notes int, contenido varchar(300), fecha_creado date, fecha_editado date);
 alter table notas add primary key (Id_Notes);
