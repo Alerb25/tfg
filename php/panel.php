@@ -61,7 +61,7 @@ echo "<!DOCTYPE html>
     echo "<a href='logout.php'>Cerrar Sesión</a>";
 
 echo "  </div>
-</body>
-</html>";
+    </body>
+    </html>";
 
 ?>
