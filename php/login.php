@@ -31,19 +31,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
 
 //Registro
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
-    $mail = $_POST["new_mail"];
+    $email = $_POST["new_mail"];
     $password = $_POST["password"];
     $nombre = $_POST["nombre"];
     $p_apellido = $_POST["p_apellido"];
     $s_apellido = $_POST["s_apellido"];
 
-    $verificar = "SELECT * FROM usuario WHERE mail='$mail'";
+    $verificar = "SELECT * FROM usuario WHERE mail='$email'";
     $existe = $conexion->query($verificar);
 
     if ($existe->num_rows > 0) {
         $error = "El correo ya existe";
     } else {
-        $insertar = "INSERT INTO usuario (Nombre, Password, mail, p_apellido, s_apellido) VALUES ('$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
+        $insertar = "INSERT INTO usuario (Nombre, Password, mail, p_apellido, s_apellido) VALUES ('$nombre', '$password', '$email', '$p_apellido', '$s_apellido')";
 
         if ($conexion->query($insertar)) {
             $exito = "Registro exitoso. Ahora puedes iniciar sesión";
@@ -73,7 +73,7 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h2>Iniciar Sesión</h2>
         <form method='POST'>
-            <input type='email' name='mail' placeholder='Correo' required>
+            <input type='email' name='new_mail' placeholder='Correo' required>
             <input type='password' name='password' placeholder='Contraseña' required>
             <button type='submit' name='login'>Entrar</button>
         </form>";
@@ -89,9 +89,9 @@ echo "  </div>
             <input type='text' name='nombre' placeholder='Nombre' required>
             <input type='text' name='p_apellido' placeholder='Primer Apellido' required>
             <input type='text' name='s_apellido' placeholder='Segundo Apellido' required>
-            <input type='email' name='nuevo_mail' placeholder='Correo' required>
-            <input type='password' name='nueva_password' placeholder='Contraseña' required>
-            <button type='submit' name='registro'>Registrarse</button>
+            <input type='email' name='new_mail' placeholder='Correo' required>
+            <input type='password' name='password' placeholder='Contraseña' required>
+            <button type='submit' name='register'>Registrarse</button>
         </form>
     </div>
 </body>
