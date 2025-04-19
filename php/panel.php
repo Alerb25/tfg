@@ -1,28 +1,42 @@
 <?php
 session_start();
 
-// Conexión a la base de datos, si no hay sesion activa se redirige al login
+// Verifica si hay sesión activa
 if (!isset($_SESSION["id_user"])) {
     header("Location: login.php");
     exit();
 }
 
-// Conexión a la base de datos igual que en login.php
-$conexion = new mysqli("localhost", "usuario", "", "proyecto");
-
-if ($conexion->connect_error) {
-    die("Error de conexión: " . $conexion->connect_error);
+// Conexión PostgreSQL
+$conexion = pg_connect("host=localhost dbname=proyecto user=usuario password=usuario");
+if (!$conexion) {
+    die("Error de conexión con la base de datos");
 }
 
-//datos del usuario
+// Datos del usuario
 $id_user = $_SESSION["id_user"];
 $nombre = $_SESSION["nombre"];
 
-//Consultar notas del usuario
-$consulta = "SELECT * FROM notas WHERE Id_User='$id_user'";
-$resultado = $conexion->query($consulta);
+// Guardar nueva nota
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
+    $contenido = pg_escape_string($conexion, $_POST["nota"]);
+    $fecha = date("Y-m-d");
 
-//HTML
+    $insertar = "INSERT INTO notas (contenido, fecha_creado, fecha_editado, id_user) 
+                 VALUES ('$contenido', '$fecha', '$fecha', '$id_user')";
+    if (pg_query($conexion, $insertar)) {
+        header("Location: panel.php"); // Evita reenvío del form
+        exit();
+    } else {
+        $error = "Error al guardar la nota.";
+    }
+}
+
+// Obtener las notas del usuario
+$consulta = "SELECT * FROM notas WHERE id_user='$id_user' ORDER BY fecha_creado DESC";
+$resultado = pg_query($conexion, $consulta);
+
+// HTML
 echo "<!DOCTYPE html>
 <html>
 <head>
@@ -30,56 +44,41 @@ echo "<!DOCTYPE html>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Panel de Notas - App de Notas</title>
     <style>
-        body { font-family: Arial; background: #f4f4f4; display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding-top: 50px; }
-        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
-        input { width: 100%; padding: 10px; margin: 8px 0; }
+        body { font-family: Arial; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
+        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 400px; margin-bottom: 20px; }
+        input, textarea { width: 100%; padding: 10px; margin: 8px 0; }
         button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; }
-        .error { color: red; margin-top: 10px; }
-        .exito { color: green; margin-top: 10px; }
+        .nota { background: #eef; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <h2>Bienvenido $nombre</h2>
+    <h2>Bienvenido, $nombre</h2>
+
     <div class='box'>
-        <h2>Crear Nueva Nota</h2>
+        <h3>Crear Nueva Nota</h3>
         <form method='POST'>
-            <input type='text' name='nota' placeholder='Escribe tu nota aquí...' required>
+            <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea>
             <button type='submit' name='guardar'>Guardar</button>
         </form>
-    <h2>Notas</h2>";
+    </div>
 
-// Si se envió el formulario para guardar una nota
-if (isset($_POST["guardar"])) {
-    $contenido = $conexion->real_escape_string($_POST["nota"]);
-    $fecha = date("Y-m-d");
-    $insertar = "INSERT INTO notas (contenido, fecha_creado, fecha_editado, Id_User) 
-                 VALUES ('$contenido', '$fecha', '$fecha', '$id_user')";
+    <div class='box'>
+        <h3>Notas Guardadas</h3>";
 
-    if ($conexion->query($insertar)) {
-        echo "<p class='exito'>Nota guardada correctamente.</p>";
-        // Redirigir para evitar reenvío del formulario al refrescar
-        header("Location: panel.php");
-        exit();
-    } else {
-        echo "<p class='error'>Error al guardar la nota: " . $conexion->error . "</p>";
-    }
-}
-
-
-if ($resultado->num_rows > 0) {
-    while ($nota = $resultado->fetch_assoc()) {
-        echo "<div class='nota'>
-                <p><strong>Nota #{$nota["Id_Notes"]}</strong></p>
-                <p>{$nota["contenido"]}</p>
-                <p>Creada: {$nota["fecha_creado"]}</p>
-                </div>";
-    }
-} else {
-    echo "<p>No hay notas creadas</p>";
-}
-
-echo "<a href='logout.php'>Cerrar Sesión</a>";
+        if (pg_num_rows($resultado) > 0) {
+            while ($nota = pg_fetch_assoc($resultado)) {
+                echo "<div class='nota'>
+                        <p><strong>Nota #{$nota["id_notes"]}</strong></p>
+                        <p>{$nota["contenido"]}</p>
+                        <p><em>Creada: {$nota["fecha_creado"]}</em></p>
+                    </div>";
+            }
+        } else {
+            echo "<p>No hay notas creadas.</p>";
+        }
 
 echo "  </div>
-    </body>
-    </html>";
+    <a href='logout.php'>Cerrar sesión</a>
+</body>
+</html>";
+?>

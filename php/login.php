@@ -1,34 +1,34 @@
 <?php
 session_start();
 
-// Conexión a la base de datos
-$conexion = new mysqli("localhost", "usuario", "", "proyecto");
+// Conexión a la base de datos (PostgreSQL)
+$conexion = pg_connect("host=localhost dbname=proyecto user=usuario password=usuario");
 
-if ($conexion->connect_error) {
-    die("Error de conexión: " . $conexion->connect_error);
+if (!$conexion) {
+    die("Error de conexión con la base de datos");
 }
 
-//Login 
+// Login 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = $_POST["mail"];
     $password = $_POST["password"];
 
-    $consulta = "SELECT * FROM usuario WHERE mail='$mail' AND Password='$password'";
-    $resultado = $conexion->query($consulta);
+    $consulta = "SELECT * FROM usuario WHERE mail='$mail' AND password='$password'";
+    $resultado = pg_query($conexion, $consulta);
 
-    if ($resultado->num_rows == 1) {
-        $usuario = $resultado->fetch_assoc();
-        $_SESSION["id_user"] = $usuario["Id_User"];
-        $_SESSION["nombre"] = $usuario["Nombre"];
+    if (pg_num_rows($resultado) == 1) {
+        $usuario = pg_fetch_assoc($resultado);
+        $_SESSION["id_user"] = $usuario["id_user"];
+        $_SESSION["nombre"] = $usuario["nombre"];
 
-        header("Location: panel.php"); // Página principal tras login
+        header("Location: panel.php");
         exit();
     } else {
         $error = "Correo o contraseña incorrectos";
     }
 }
 
-//Registro
+// Registro
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     $email = $_POST["new_mail"];
     $password = $_POST["password"];
@@ -37,14 +37,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     $s_apellido = $_POST["s_apellido"];
 
     $verificar = "SELECT * FROM usuario WHERE mail='$email'";
-    $existe = $conexion->query($verificar);
+    $existe = pg_query($conexion, $verificar);
 
-    if ($existe->num_rows > 0) {
+    if (pg_num_rows($existe) > 0) {
         $error = "El correo ya existe";
     } else {
-        $insertar = "INSERT INTO usuario (Nombre, Password, mail, p_apellido, s_apellido) VALUES ('$nombre', '$password', '$email', '$p_apellido', '$s_apellido')";
-
-        if ($conexion->query($insertar)) {
+        $insertar = "INSERT INTO usuario (nombre, password, mail, p_apellido, s_apellido) 
+                     VALUES ('$nombre', '$password', '$email', '$p_apellido', '$s_apellido')";
+        if (pg_query($conexion, $insertar)) {
             $exito = "Registro exitoso. Ahora puedes iniciar sesión";
         } else {
             $error = "Error al crear la cuenta";
@@ -72,7 +72,7 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h2>Iniciar Sesión</h2>
         <form method='POST'>
-            <input type='email' name='new_mail' placeholder='Correo' required>
+            <input type='email' name='mail' placeholder='Correo' required>
             <input type='password' name='password' placeholder='Contraseña' required>
             <button type='submit' name='login'>Entrar</button>
         </form>";
@@ -95,5 +95,4 @@ echo "  </div>
     </div>
 </body>
 </html>";
-
 ?>
