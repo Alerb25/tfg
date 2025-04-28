@@ -9,14 +9,14 @@ create table usuario (Id_User interger(255), Nombre varchar(30), Password varcha
 alter table usuario add primary key (Id_User);
 alter table usuario add constraint uk_mail unique (mail);
 
---Notas
-create table notas (Id_Notes int, contenido varchar(300), fecha_creado date, fecha_editado date);
-alter table notas add primary key (Id_Notes);
+--nota
+create table nota (Id_Notes int, contenido varchar(300), fecha_creado date, fecha_editado date);
+alter table nota add primary key (Id_Notes);
  
 --Compartir
 create table compartir (Id_Share int, Id_User int, Id_Notes int, permisos varchar(30) );
 alter table compartir add primary key (Id_Share);
-alter table compartir add constraint fk_notes foreign key (Id_Notes) References notas (Id_Notes);
+alter table compartir add constraint fk_notes foreign key (Id_Notes) References nota (Id_Notes);
 alter table compartir add constraint fk_user foreign key (Id_User) References usuario (Id_User);
  
 --Etiqueta
@@ -30,6 +30,6 @@ alter table archivo add primary key (Id_File);
 
 --Tiene 
 create or replace view tiene 
-as select Id_Notes From notas
+as select Id_Notes From nota
 Union
 select  Id_Tag From etiqueta;
