@@ -13,7 +13,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = $_POST["mail"];
     $password = $_POST["password"];
 
-    $consulta = "SELECT * FROM usuario WHERE mail='$email' AND password='$password'";
+    $consulta = "SELECT * FROM usuario WHERE mail='$mail' AND password='$password'";
+
     $resultado = pg_query($conexion, $consulta);
 
     if (pg_num_rows($resultado) == 1) {
