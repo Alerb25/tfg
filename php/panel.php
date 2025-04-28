@@ -22,7 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     $contenido = pg_escape_string($conexion, $_POST["nota"]);
     $fecha = date("Y-m-d");
 
-    $insertar = "INSERT INTO notas (contenido, fecha_creado, fecha_editado, id_user) 
+    $insertar = "INSERT INTO nota (contenido, fecha_creado, fecha_editado, id_user) 
                  VALUES ('$contenido', '$fecha', '$fecha', '$id_user')";
     if (pg_query($conexion, $insertar)) {
         header("Location: panel.php"); // Evita reenvío del form
@@ -32,8 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     }
 }
 
-// Obtener las notas del usuario
-$consulta = "SELECT * FROM notas WHERE id_user='$id_user' ORDER BY fecha_creado DESC";
+// Obtener las nota del usuario
+$consulta = "SELECT * FROM nota WHERE id_user='$id_user' ORDER BY fecha_creado DESC";
 $resultado = pg_query($conexion, $consulta);
 
 // HTML
@@ -42,7 +42,7 @@ echo "<!DOCTYPE html>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Panel de Notas - App de Notas</title>
+    <title>Panel de nota - App de nota</title>
     <style>
         body { font-family: Arial; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
         .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 400px; margin-bottom: 20px; }
