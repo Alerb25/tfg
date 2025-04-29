@@ -37,14 +37,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     $p_apellido = $_POST["p_apellido"];
     $s_apellido = $_POST["s_apellido"];
 
-    $verificar = "SELECT * FROM usuario WHERE mail='$email'";
+    $verificar = "SELECT * FROM usuario WHERE mail='$mail'";
     $existe = pg_query($conexion, $verificar);
 
     if (pg_num_rows($existe) > 0) {
         $error = "El correo ya existe";
     } else {
         $insertar = "INSERT INTO usuario (nombre, password, mail, p_apellido, s_apellido) 
-                     VALUES ('$nombre', '$password', '$email', '$p_apellido', '$s_apellido')";
+                     VALUES ('$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
         if (pg_query($conexion, $insertar)) {
             $exito = "Registro exitoso. Ahora puedes iniciar sesión";
         } else {
@@ -73,7 +73,7 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h2>Iniciar Sesión</h2>
         <form method='POST'>
-            <input type='email' name='mail' placeholder='Correo' required>
+            <input type='mail' name='mail' placeholder='Correo' required>
             <input type='password' name='password' placeholder='Contraseña' required>
             <button type='submit' name='login'>Entrar</button>
         </form>";
@@ -89,7 +89,7 @@ echo "  </div>
             <input type='text' name='nombre' placeholder='Nombre' required>
             <input type='text' name='p_apellido' placeholder='Primer Apellido' required>
             <input type='text' name='s_apellido' placeholder='Segundo Apellido' required>
-            <input type='email' name='new_mail' placeholder='Correo' required>
+            <input type='mail' name='new_mail' placeholder='Correo' required>
             <input type='password' name='password' placeholder='Contraseña' required>
             <button type='submit' name='register'>Registrarse</button>
         </form>
