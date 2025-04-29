@@ -69,3 +69,17 @@ CREATE INDEX idx_etiqueta_usuario ON Etiqueta(Id_User);
 CREATE INDEX idx_compartir_usuario ON Compartir(Id_User);
 CREATE INDEX idx_compartir_nota ON Compartir(Id_Note);
 CREATE INDEX idx_archivo_nota ON Archivo(Id_Note);
+
+// Notas propias
+$consulta_propias = "SELECT * FROM nota WHERE id_user = $id_user";
+
+// Notas compartidas
+$consulta_compartidas = "SELECT n.*
+                         FROM nota n
+                         INNER JOIN compartir c ON n.id_note = c.id_note
+                         WHERE c.id_user = $id_user";
+
+$resultado_propias = pg_query($conexion, $consulta_propias);
+$resultado_compartidas = pg_query($conexion, $consulta_compartidas);
+
+

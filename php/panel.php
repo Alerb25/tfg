@@ -33,8 +33,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
 }
 
 // Obtener las nota del usuario
-$consulta = "SELECT * FROM nota WHERE id_user='$id_user' ORDER BY fecha_creado DESC";
+$consulta = "
+SELECT DISTINCT n.* 
+FROM nota n
+LEFT JOIN compartir c ON n.id_note = c.id_note
+WHERE n.id_user = $id_user OR c.id_user = $id_user
+ORDER BY n.fecha_creado DESC;
+";
 $resultado = pg_query($conexion, $consulta);
+
+$notas = [];
+
+while ($fila = pg_fetch_assoc($resultado_propias)) {
+    $notas[] = $fila;
+}
+
+while ($fila = pg_fetch_assoc($resultado_compartidas)) {
+    $notas[] = $fila;
+}
+
 
 // HTML
 echo "<!DOCTYPE html>
