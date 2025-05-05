@@ -8,7 +8,7 @@ if (!isset($_SESSION["id_user"])) {
 }
 
 // Conexión PostgreSQL
-$conexion = pg_connect("host=localhost dbname=proyecto user=usuario password=usuario");
+$conexion = pg_connect("host=localhost dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
     die("Error de conexión con la base de datos");
 }

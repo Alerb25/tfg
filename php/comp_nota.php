@@ -9,7 +9,7 @@ if (!isset($_SESSION["id_user"])) {
 
 // Incluir archivo de conexión
 require_once 'config/db.php';
-$conexion = conectarDB();
+$conexion = pg_connect("host=localhost dbname=proyecto user=proyecto password=proyecto");
 
 // Datos del usuario
 $id_user = $_SESSION["id_user"];
@@ -56,8 +56,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["compartir"])) {
     $consulta_usuario = "SELECT id_user FROM usuario WHERE mail = $1";
     $resultado_usuario = pg_query_params($conexion, $consulta_usuario, array($email_usuario));
     
-    if (pg_num_rows($resultado_usuario) == 0) {
-        $error = "No existe ningún usuario con ese correo electrónico";
-    } else {
-        $usuario_destino = pg_fetch_assoc($resultado_usuario);
-        $id_
+}
