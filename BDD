@@ -1,7 +1,10 @@
 -- Database
+create user proyecto with password 'proyecto';
+grant all privileges on database proyecto to proyecto;
 create database proyecto;
-\c poryecto
-
+\c proyecto
+grant all privileges on all tables in schema public to proyecto;
+grant all privileges on all sequences in schema public to proyecto;
 --Tables
 
 --Usuario
