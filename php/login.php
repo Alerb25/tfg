@@ -62,7 +62,7 @@ echo "<!DOCTYPE html>
     <title>Login / Registro - App de Notas</title>
     <style>
         body { font-family: Arial; background: #f4f4f4; display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding-top: 50px; }
-        .box { background: white; padding: 20px 50px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
+        .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 300px; }
         input { width: 100%; padding: 10px; margin: 8px 0; }
         button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; }
         .error { color: red; margin-top: 10px; }
