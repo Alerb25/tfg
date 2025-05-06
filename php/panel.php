@@ -82,20 +82,70 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h3>Notas Guardadas</h3>";
 
-        if (pg_num_rows($resultado) > 0) {
-            while ($nota = pg_fetch_assoc($resultado)) {
-                echo "<div class='nota'>
-                        <p><strong>Nota #{$nota["id_notes"]}</strong></p>
-                        <p>{$nota["contenido"]}</p>
-                        <p><em>Creada: {$nota["fecha_creado"]}</em></p>
-                    </div>";
-            }
-        } else {
-            echo "<p>No hay notas creadas.</p>";
-        }
+if (pg_num_rows($resultado) > 0) {
+    while ($nota = pg_fetch_assoc($resultado)) {
+        echo "<div class='nota'>
+        <p><strong>Nota #{$nota["id_notes"]}</strong></p>
+        <p>{$nota["contenido"]}</p>
+        <p><em>Creada: {$nota["fecha_creado"]}</em></p>
+        </div>";
+        echo "<div class='nota'>
+        <p><strong>Nota #{$nota["id_note"]}</strong></p>
+        <p>{$nota["contenido"]}</p>
+        <p><em>Creada: {$nota["fecha_creado"]}</em></p>
+        <button onclick='abrirModal({$nota["id_note"]})'>Compartir</button>
+        </div>";
+    }
+} else {
+    echo "<p>No hay notas creadas.</p>";
+}
 
-echo "  </div>
+echo "<div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+        background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
+        <h3>Compartir nota</h3>
+        <form id='formCompartir'>
+        <input type='hidden' name='id_note' id='id_note_modal'>
+        <input type='email' name='email_usuario' placeholder='Correo del usuario' required> 
+        <select name='permisos'>
+            <option value='lectura'>Lectura</option>
+            <option value='edicion'>Edición</option>
+        </select>
+        <button type='submit'>Compartir</button>
+        <button type='button' onclick='cerrarModal()'>Cancelar</button>
+    </form>
+    <div id='respuestaAjax' style='margin-top:10px;'></div>
+    </div>
+    </div>
     <a href='logout.php'>Cerrar sesión</a>
-</body>
-</html>";
-?>
+    </body>
+    <script>
+function abrirModal(idNota) {
+    document.getElementById('id_note_modal').value = idNota;
+    document.getElementById('modalCompartir').style.display = 'block';
+}
+
+function cerrarModal() {
+    document.getElementById('modalCompartir').style.display = 'none';
+    document.getElementById('respuestaAjax').innerText = '';
+}
+
+document.getElementById('formCompartir').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('compartir.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById('respuestaAjax').innerText = data;
+    })
+    .catch(() => {
+        document.getElementById('respuestaAjax').innerText = 'Error al compartir.';
+    });
+});
+</script>
+
+    </html>";
