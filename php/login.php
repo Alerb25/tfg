@@ -43,8 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     if (pg_num_rows($existe) > 0) {
         $error = "El correo ya existe";
     } else {
-        $insertar = "INSERT INTO usuario (nombre, password, mail, p_apellido, s_apellido) 
-                     VALUES ('$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
+        $insertar = "INSERT INTO usuario ( id_user, nombre, password, mail, p_apellido, s_apellido) 
+                     VALUES (DEFAULT,'$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
         if (pg_query($conexion, $insertar)) {
             $exito = "Registro exitoso. Ahora puedes iniciar sesión";
         } else {
