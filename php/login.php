@@ -32,7 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
 
 // Registro
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
-    $email = $_POST["new_mail"];
+    $mail = $_POST["new_mail"];
     $password = $_POST["password"];
     $nombre = $_POST["nombre"];
     $p_apellido = $_POST["p_apellido"];
