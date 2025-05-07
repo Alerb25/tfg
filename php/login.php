@@ -13,26 +13,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = $_POST["mail"];
     $password = $_POST["password"];
 
-    $consulta = "SELECT * FROM usuario WHERE mail='" . pg_escape_string($mail) . "' AND password='" . pg_escape_string($password) . "'";
+    $consulta = "SELECT * FROM usuario WHERE mail='" . pg_escape_string($conexion, $mail) . "' AND password='" . pg_escape_string($conexion, $password) . "'";
     $resultado = pg_query($conexion, $consulta);
-    if (!$resultado) {
-        die("Error en la consulta SQL del login: " . pg_last_error($conexion));
-    }
+    
+    // Verificar si la consulta fue exitosa antes de usar pg_num_rows
+    if ($resultado) {
+        if (pg_num_rows($resultado) == 1) {
+            $usuario = pg_fetch_assoc($resultado);
+            $_SESSION["id_user"] = $usuario["id_user"];
+            $_SESSION["nombre"] = $usuario["nombre"];
 
-
-    if (pg_num_rows($resultado) == 1) {
-        $usuario = pg_fetch_assoc($resultado);
-        $_SESSION["id_user"] = $usuario["id_user"];
-        $_SESSION["nombre"] = $usuario["nombre"];
-
-
-        header("Location: panel.php");
-        exit();
+            header("Location: panel.php");
+            exit();
+        } else {
+            $error = "Correo o contraseña incorrectos";
+        }
     } else {
-        $error = "Correo o contraseña incorrectos";
+        $error = "Error en la consulta SQL del login: " . pg_last_error($conexion);
     }
 }
-
 // Registro
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     $mail = $_POST["new_mail"];
@@ -44,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     $verificar = "SELECT * FROM usuario WHERE mail='$mail'";
     $existe = pg_query($conexion, $verificar);
 
-    if (pg_num_rows($existe) > 0) {
+    if ($existe && pg_num_rows($existe) > 0) {
         $error = "El correo ya existe";
     } else {
         $insertar = "INSERT INTO usuario (id_user, nombre, password, mail, p_apellido, s_apellido) 
