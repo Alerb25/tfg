@@ -15,6 +15,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
 
     $consulta = "SELECT * FROM usuario WHERE mail='" . pg_escape_string($mail) . "' AND password='" . pg_escape_string($password) . "'";
     $resultado = pg_query($conexion, $consulta);
+    if (!$resultado) {
+        die("Error en la consulta SQL del login: " . pg_last_error($conexion));
+    }
+
 
     if (pg_num_rows($resultado) == 1) {
         $usuario = pg_fetch_assoc($resultado);
@@ -43,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     if (pg_num_rows($existe) > 0) {
         $error = "El correo ya existe";
     } else {
-        $insertar = "INSERT INTO usuario ( id_user, nombre, password, mail, p_apellido, s_apellido) 
+        $insertar = "INSERT INTO usuario (id_user, nombre, password, mail, p_apellido, s_apellido) 
                      VALUES (DEFAULT,'$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
         if (pg_query($conexion, $insertar)) {
             $exito = "Registro exitoso. Ahora puedes iniciar sesión";
