@@ -21,8 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
         $_SESSION["id_user"] = $usuario["id_user"];
         $_SESSION["nombre"] = $usuario["nombre"];
 
-        echo "Login exitoso, redirigiendo...";
-        exit();
+
         header("Location: panel.php");
         exit();
     } else {
