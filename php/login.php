@@ -13,8 +13,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = $_POST["mail"];
     $password = $_POST["password"];
 
-    $consulta = "SELECT * FROM usuario WHERE mail='" . pg_escape_string($conexion, $mail) . "' AND password='" . pg_escape_string($conexion, $password) . "'";
+    $consulta = "SELECT * FROM usuario WHERE mail='" . pg_escape_string($mail) . "' AND password='" . pg_escape_string($password) . "'";
     $resultado = pg_query($conexion, $consulta);
+    
+    if (!$resultado) {
+        die("Error en la consulta SQL: " . pg_last_error($conexion));
+    }
     
     // Verificar si la consulta fue exitosa antes de usar pg_num_rows
     if ($resultado) {
