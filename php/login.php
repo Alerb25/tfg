@@ -2,7 +2,8 @@
 session_start();
 
 // Conexión a la base de datos (PostgreSQL)
-$conexion = pg_connect("host=localhost dbname=proyecto user=proyecto password=proyecto");
+$conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
+
 
 if (!$conexion) {
     die("Error de conexión con la base de datos");
