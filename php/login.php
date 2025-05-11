@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = trim(pg_escape_string($conexion, $_POST["mail"]));
     $password = trim(pg_escape_string($conexion, $_POST["password"]));
 
-    $consulta = "SELECT * FROM usuario WHERE \"mail\" = '$mail' AND \"Password\" = '$password'";
+    $consulta = "SELECT * FROM usuario WHERE 'mail' = '$mail' AND 'Password' = '$password'";
     $resultado = pg_query($conexion, $consulta);
 
     if (!$resultado) {
