@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = trim(pg_escape_string($conexion, $_POST["mail"]));
     $password = trim(pg_escape_string($conexion, $_POST["password"]));
 
-    $consulta = "SELECT * FROM usuario WHERE 'mail' = '$mail' AND 'Password' = '$password'";
+    $consulta = "SELECT * FROM usuario WHERE mail = '$mail' AND password = '$password'";
     $resultado = pg_query($conexion, $consulta);
 
     if (!$resultado) {
@@ -23,8 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
 
     if (pg_num_rows($resultado) == 1) {
         $usuario = pg_fetch_assoc($resultado);
-        $_SESSION["Id_user"] = $usuario["id_user"];
-        $_SESSION["Nombre"] = $usuario["nombre"];
+        $_SESSION["id_user"] = $usuario["id_user"];
+        $_SESSION["nombre"] = $usuario["nombre"];
 
         header("Location: panel.php");
         exit();
@@ -32,6 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
         $error = "Correo o contraseña incorrectos";
     }
 }
+
 // Registro
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     $mail = $_POST["new_mail"];

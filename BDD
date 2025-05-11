@@ -8,31 +8,31 @@ grant all privileges on all sequences in schema public to proyecto;
 --Tables
 
 --Usuario
-create table usuario (Id_User SERIAL, Nombre varchar(30), Password varchar(30), mail varchar(30), p_apellido varchar(30), s_apellido varchar(30));
-alter table usuario add primary key (Id_User);
+create table usuario (id_User SERIAL, nombre varchar(30), Password varchar(30), mail varchar(30), p_apellido varchar(30), s_apellido varchar(30));
+alter table usuario add primary key (id_User);
 alter table usuario add constraint uk_mail unique (mail);
 
 --nota
-create table nota (Id_Notes SERIAL, contenido varchar(300), fecha_creado date, fecha_editado date);
-alter table nota add primary key (Id_Notes);
+create table nota (id_Notes SERIAL, contenido varchar(300), fecha_creado date, fecha_editado date);
+alter table nota add primary key (id_Notes);
  
 --Compartir
-create table compartir (Id_Share SERIAL, Id_User int, Id_Notes int, permisos varchar(30) );
-alter table compartir add primary key (Id_Share);
-alter table compartir add constraint fk_notes foreign key (Id_Notes) References nota (Id_Notes);
-alter table compartir add constraint fk_user foreign key (Id_User) References usuario (Id_User);
+create table compartir (id_Share SERIAL, id_User int, id_Notes int, permisos varchar(30) );
+alter table compartir add primary key (id_Share);
+alter table compartir add constraint fk_notes foreign key (id_Notes) References nota (id_Notes);
+alter table compartir add constraint fk_user foreign key (id_User) References usuario (id_User);
  
 --Etiqueta
-create table etiqueta (Id_Tag SERIAL, nombre varchar(30) );
-alter table etiqueta add primary key (Id_Tag);
+create table etiqueta (id_Tag SERIAL, nombre varchar(30) );
+alter table etiqueta add primary key (id_Tag);
   
  
 --Archivo
-create table archivo (Id_File SERIAL, nombre varchar(30), tipo varchar(30));
-alter table archivo add primary key (Id_File);
+create table archivo (id_File SERIAL, nombre varchar(30), tipo varchar(30));
+alter table archivo add primary key (id_File);
 
 --Tiene 
 create or replace view tiene 
-as select Id_Notes From nota
+as select id_Notes From nota
 Union
-select  Id_Tag From etiqueta;
+select  id_Tag From etiqueta;
