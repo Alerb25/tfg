@@ -60,7 +60,7 @@ echo "<!DOCTYPE html>
     <title>Panel de notas - App de notas</title>
     <style>
         body { font-family: Arial; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
-        .box { background: white; padding: 20px 50 px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 400px; margin-bottom: 20px; }
+        .box { background: white; padding: 20px 100px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 400px; margin-bottom: 20px; }
         input, textarea { width: 100%; padding: 10px; margin: 8px 0; }
         button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; }
         .nota { background: #eef; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
