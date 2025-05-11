@@ -1,20 +1,20 @@
 <?php
 session_start();
 
+// Conexión única a la base de datos (PostgreSQL)
+$conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
+if (!$conexion) {
+    die("Error de conexión con la base de datos");
+}
+
 // Verifica si hay sesión activa
 if (!isset($_SESSION["id_user"])) {
     header("Location: login.php");
     exit();
 }
 
-// Conexión PostgreSQL
-$conexion = pg_connect("host=localhost dbname=proyecto user=proyecto password=proyecto");
-if (!$conexion) {
-    die("Error de conexión con la base de datos");
-}
-
 // Datos del usuario
-$id_user = $_SESSION["id_user"];
+$id_user = intval($_SESSION["id_user"]);
 $nombre = $_SESSION["nombre"];
 
 // Guardar nueva nota
@@ -25,14 +25,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     $insertar = "INSERT INTO nota (contenido, fecha_creado, fecha_editado, id_user) 
                  VALUES ('$contenido', '$fecha', '$fecha', '$id_user')";
     if (pg_query($conexion, $insertar)) {
-        header("Location: panel.php"); // Evita reenvío del form
+        header("Location: panel.php"); // Evita reenvío del formulario
         exit();
     } else {
         $error = "Error al guardar la nota.";
     }
 }
 
-// Obtener las nota del usuario
+// Obtener las notas del usuario
 $consulta = "
 SELECT DISTINCT n.* 
 FROM nota n
@@ -43,15 +43,13 @@ ORDER BY n.fecha_creado DESC;
 $resultado = pg_query($conexion, $consulta);
 
 $notas = [];
-
-while ($fila = pg_fetch_assoc($resultado_propias)) {
-    $notas[] = $fila;
+if ($resultado) {
+    while ($fila = pg_fetch_assoc($resultado)) {
+        $notas[] = $fila;
+    }
+} else {
+    $error = "Error al obtener las notas.";
 }
-
-while ($fila = pg_fetch_assoc($resultado_compartidas)) {
-    $notas[] = $fila;
-}
-
 
 // HTML
 echo "<!DOCTYPE html>
@@ -59,7 +57,7 @@ echo "<!DOCTYPE html>
 <head>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Panel de nota - App de nota</title>
+    <title>Panel de notas - App de notas</title>
     <style>
         body { font-family: Arial; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
         .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 400px; margin-bottom: 20px; }
@@ -82,70 +80,66 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h3>Notas Guardadas</h3>";
 
-if (pg_num_rows($resultado) > 0) {
-    while ($nota = pg_fetch_assoc($resultado)) {
+if (!empty($error)) {
+    echo "<p style='color:red;'>$error</p>";
+} elseif (count($notas) > 0) {
+    foreach ($notas as $nota) {
         echo "<div class='nota'>
-        <p><strong>Nota #{$nota["id_notes"]}</strong></p>
-        <p>{$nota["contenido"]}</p>
-        <p><em>Creada: {$nota["fecha_creado"]}</em></p>
-        </div>";
-        echo "<div class='nota'>
-        <p><strong>Nota #{$nota["id_note"]}</strong></p>
-        <p>{$nota["contenido"]}</p>
-        <p><em>Creada: {$nota["fecha_creado"]}</em></p>
-        <button onclick='abrirModal({$nota["id_note"]})'>Compartir</button>
+            <p><strong>Nota #{$nota["id_note"]}</strong></p>
+            <p>{$nota["contenido"]}</p>
+            <p><em>Creada: {$nota["fecha_creado"]}</em></p>
+            <button onclick='abrirModal({$nota["id_note"]})'>Compartir</button>
         </div>";
     }
 } else {
     echo "<p>No hay notas creadas.</p>";
 }
 
-echo "<div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+echo "
+    <div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
         background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
         <h3>Compartir nota</h3>
         <form id='formCompartir'>
-        <input type='hidden' name='id_note' id='id_note_modal'>
-        <input type='email' name='email_usuario' placeholder='Correo del usuario' required> 
-        <select name='permisos'>
-            <option value='lectura'>Lectura</option>
-            <option value='edicion'>Edición</option>
-        </select>
-        <button type='submit'>Compartir</button>
-        <button type='button' onclick='cerrarModal()'>Cancelar</button>
-    </form>
-    <div id='respuestaAjax' style='margin-top:10px;'></div>
+            <input type='hidden' name='id_note' id='id_note_modal'>
+            <input type='email' name='email_usuario' placeholder='Correo del usuario' required> 
+            <select name='permisos'>
+                <option value='lectura'>Lectura</option>
+                <option value='edicion'>Edición</option>
+            </select>
+            <button type='submit'>Compartir</button>
+            <button type='button' onclick='cerrarModal()'>Cancelar</button>
+        </form>
+        <div id='respuestaAjax' style='margin-top:10px;'></div>
     </div>
-    </div>
+
     <a href='logout.php'>Cerrar sesión</a>
-    </body>
+
     <script>
-function abrirModal(idNota) {
-    document.getElementById('id_note_modal').value = idNota;
-    document.getElementById('modalCompartir').style.display = 'block';
-}
+        function abrirModal(idNota) {
+            document.getElementById('id_note_modal').value = idNota;
+            document.getElementById('modalCompartir').style.display = 'block';
+        }
 
-function cerrarModal() {
-    document.getElementById('modalCompartir').style.display = 'none';
-    document.getElementById('respuestaAjax').innerText = '';
-}
+        function cerrarModal() {
+            document.getElementById('modalCompartir').style.display = 'none';
+            document.getElementById('respuestaAjax').innerText = '';
+        }
 
-document.getElementById('formCompartir').addEventListener('submit', function(e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-
-    fetch('compartir.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(res => res.text())
-    .then(data => {
-        document.getElementById('respuestaAjax').innerText = data;
-    })
-    .catch(() => {
-        document.getElementById('respuestaAjax').innerText = 'Error al compartir.';
-    });
-});
-</script>
-
-    </html>";
+        document.getElementById('formCompartir').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('compartir.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('respuestaAjax').innerText = data;
+            })
+            .catch(() => {
+                document.getElementById('respuestaAjax').innerText = 'Error al compartir.';
+            });
+        });
+    </script>
+</body>
+</html>";
