@@ -14,7 +14,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $mail = $_POST["mail"];
     $password = $_POST["password"];
 
-    $consulta = "SELECT * FROM usuario WHERE id_user = " . $_SESSION["id_user"];
+    $id_user = intval($_SESSION["id_user"]);
+    $consulta = "SELECT * FROM usuario WHERE id_user = $id_user";
     $resultado = pg_query($conexion, $consulta);
     
     if (!$resultado) {
