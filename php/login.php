@@ -11,34 +11,25 @@ if (!$conexion) {
 
 // Login 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
-    $mail = $_POST["mail"];
-    $password = $_POST["password"];
+    $mail = trim(pg_escape_string($conexion, $_POST["mail"]));
+    $password = trim(pg_escape_string($conexion, $_POST["password"]));
 
-    $id_user = intval($_SESSION["id_user"]);
-    $consulta = "SELECT * FROM usuario WHERE id_user = $id_user";
+    $consulta = "SELECT * FROM usuario WHERE \"mail\" = '$mail' AND \"Password\" = '$password'";
     $resultado = pg_query($conexion, $consulta);
-    
+
     if (!$resultado) {
         die("Error en la consulta SQL: " . pg_last_error($conexion));
     }
-    
-    $usuario = pg_fetch_assoc($resultado);
-    
-    
-    // Verificar si la consulta fue exitosa antes de usar pg_num_rows
-    if ($resultado) {
-        if (pg_num_rows($resultado) == 1) {
-            $usuario = pg_fetch_assoc($resultado);
-            $_SESSION["id_user"] = $usuario["id_user"];
-            $_SESSION["nombre"] = $usuario["nombre"];
 
-            header("Location: panel.php");
-            exit();
-        } else {
-            $error = "Correo o contraseña incorrectos";
-        }
+    if (pg_num_rows($resultado) == 1) {
+        $usuario = pg_fetch_assoc($resultado);
+        $_SESSION["Id_user"] = $usuario["id_user"];
+        $_SESSION["Nombre"] = $usuario["nombre"];
+
+        header("Location: panel.php");
+        exit();
     } else {
-        $error = "Error en la consulta SQL del login: " . pg_last_error($conexion);
+        $error = "Correo o contraseña incorrectos";
     }
 }
 // Registro
@@ -52,15 +43,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
     $verificar = "SELECT * FROM usuario WHERE mail='$mail'";
     $existe = pg_query($conexion, $verificar);
 
-    if ($existe && pg_num_rows($existe) > 0) {
-        $error = "El correo ya existe";
+    $insertar = "INSERT INTO usuario (id_user, nombre, password, mail, p_apellido, s_apellido) 
+    VALUES (DEFAULT, '$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
+
+    if (@pg_query($conexion, $insertar)) {
+        $exito = "Registro exitoso. Ahora puedes iniciar sesión";
     } else {
-        $insertar = "INSERT INTO usuario (id_user, nombre, password, mail, p_apellido, s_apellido) 
-                     VALUES (DEFAULT,'$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
-        if (pg_query($conexion, $insertar)) {
-            $exito = "Registro exitoso. Ahora puedes iniciar sesión";
+        if (str_contains(pg_last_error($conexion), 'duplicate key')) {
+            $error = "El correo ya está en uso. Prueba con otro.";
         } else {
-            $error = "Error al crear la cuenta";
+            $error = "Error al crear la cuenta: " . pg_last_error($conexion);
         }
     }
 }
@@ -90,8 +82,8 @@ echo "<!DOCTYPE html>
             <button type='submit' name='login'>Entrar</button>
         </form>";
 
-        if (!empty($error)) echo "<p class='error'>$error</p>";
-        if (!empty($exito)) echo "<p class='exito'>$exito</p>";
+if (!empty($error)) echo "<p class='error'>$error</p>";
+if (!empty($exito)) echo "<p class='exito'>$exito</p>";
 
 echo "  </div>
 
@@ -108,4 +100,3 @@ echo "  </div>
     </div>
 </body>
 </html>";
-?>
