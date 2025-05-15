@@ -122,19 +122,25 @@ echo "
         
         function borrarNota(idNota) {
             if (confirm('¿Estás seguro de que quieres borrar esta nota?')) {
+                const formData = new FormData();
+                formData.append('id_note', idNota); // <-- pasamos el ID al servidor
+        
                 fetch('borrar.php', {
                     method: 'POST',
-                    body: new FormData(document.getElementById('formBorrar'))
+                    body: formData
                 })
                 .then(res => res.text())
                 .then(data => {
                     document.getElementById('respuestaAjax').innerText = data;
+                    // Opcional: refrescar la página o eliminar visualmente la nota
+                    setTimeout(() => location.reload(), 1000);
                 })
                 .catch(() => {
                     document.getElementById('respuestaAjax').innerText = 'Error al borrar.';
                 });
             }
         }
+        
 
         function cerrarModal() {
             document.getElementById('modalCompartir').style.display = 'none';
