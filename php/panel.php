@@ -22,8 +22,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     $contenido = pg_escape_string($conexion, $_POST["nota"]);
     $fecha = date("Y-m-d");
 
-    $insertar = "INSERT INTO nota (contenido, fecha_creado, fecha_editado, id_user) 
-                 VALUES ('$contenido', '$fecha', '$fecha', '$id_user')";
+    $insertar = "INSERT INTO nota (contenido, fecha_creado, fecha_editado, id_user) VALUES ('$contenido', '$fecha', '$fecha', $id_user)";
     if (pg_query($conexion, $insertar)) {
         header("Location: panel.php"); // Evita reenvío del formulario
         exit();
@@ -36,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
 $consulta = "
 SELECT DISTINCT n.* 
 FROM nota n
-LEFT JOIN compartir c ON n.id_note = c.id_note
+LEFT JOIN compartir c ON n.id_notes = c.id_notes
 WHERE n.id_user = $id_user OR c.id_user = $id_user
 ORDER BY n.fecha_creado DESC;
 ";
