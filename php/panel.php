@@ -88,6 +88,7 @@ if (!empty($error)) {
             <p>{$nota["contenido"]}</p>
             <p><em>Creada: {$nota["fecha_creado"]}</em></p>
             <button onclick='abrirModal({$nota["id_note"]})'>Compartir</button>
+            <button onclick='borrarNota({$nota["id_note"]})'>Borrar</button>
         </div>";
     }
 } else {
@@ -117,6 +118,22 @@ echo "
         function abrirModal(idNota) {
             document.getElementById('id_note_modal').value = idNota;
             document.getElementById('modalCompartir').style.display = 'block';
+        }
+        
+        function borrarNota(idNota) {
+            if (confirm('¿Estás seguro de que quieres borrar esta nota?')) {
+                fetch('borrar.php', {
+                    method: 'POST',
+                    body: new FormData(document.getElementById('formBorrar'))
+                })
+                .then(res => res.text())
+                .then(data => {
+                    document.getElementById('respuestaAjax').innerText = data;
+                })
+                .catch(() => {
+                    document.getElementById('respuestaAjax').innerText = 'Error al borrar.';
+                });
+            }
         }
 
         function cerrarModal() {
