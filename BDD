@@ -15,6 +15,7 @@ alter table usuario add constraint uk_mail unique (mail);
 --nota
 create table nota (id_Notes SERIAL, contenido varchar(300), fecha_creado date, fecha_editado date);
 alter table nota add primary key (id_Notes);
+alter table nota add constraint fk_user foreign key (id_User) References usuario (id_User);
  
 --Compartir
 create table compartir (id_Share SERIAL, id_User int, id_Notes int, permisos varchar(30) );
