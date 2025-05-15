@@ -6,9 +6,9 @@ if (!$conexion) {
     die("Error de conexión");
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_note"])) {
-    $idNota = intval($_POST["id_note"]);
-    $id_user = $_SESSION["Id_user"];
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_notes"])) {
+    $idNota = intval($_POST["id_Notes"]);
+    $id_user = $_SESSION["id_User"];
 
     // Seguridad: solo el dueño de la nota puede borrarla
     $verifica = pg_query($conexion, "SELECT * FROM nota WHERE id_notes = $idNota AND id_user = $id_user");
