@@ -6,22 +6,22 @@ if (!$conexion) {
     die("Error de conexión");
 }
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["id_note"])) {
-    $id_note = intval($_POST["id_note"]);
-    $id_user = intval($_SESSION["id_user"]);
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_note"])) {
+    $idNota = intval($_POST["id_note"]);
+    $id_user = $_SESSION["Id_user"];
 
-    // Verificamos que la nota le pertenezca al usuario
-    $verificar = pg_query($conexion, "SELECT * FROM nota WHERE id_notes = $id_note AND id_user = $id_user");
+    // Seguridad: solo el dueño de la nota puede borrarla
+    $verifica = pg_query($conexion, "SELECT * FROM nota WHERE id_notes = $idNota AND id_user = $id_user");
 
-    if (pg_num_rows($verificar) > 0) {
-        $borrar = pg_query($conexion, "DELETE FROM nota WHERE id_notes = $id_note");
-        if ($borrar) {
-            echo "Nota borrada correctamente.";
+    if (pg_num_rows($verifica) === 1) {
+        $delete = pg_query($conexion, "DELETE FROM nota WHERE id_notes = $idNota");
+        if ($delete) {
+            echo "Nota eliminada.";
         } else {
-            echo "Error al borrar la nota.";
+            echo "Error al borrar.";
         }
     } else {
-        echo "No tienes permiso para borrar esta nota.";
+        echo "No tienes permisos para borrar esta nota.";
     }
 }
 ?>

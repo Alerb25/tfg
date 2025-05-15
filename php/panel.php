@@ -15,7 +15,7 @@ if (!isset($_SESSION["id_user"])) {
 
 // Datos del usuario
 $id_user = intval($_SESSION["id_user"]);
-$nombre = $_SESSION["nombre"];
+$nombre = $_SESSION["Nombre"];
 
 // Guardar nueva nota
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
@@ -84,12 +84,15 @@ if (!empty($error)) {
 } elseif (count($notas) > 0) {
     foreach ($notas as $nota) {
         echo "<div class='nota'>
-            <p><strong>Nota #{$nota["id_note"]}</strong></p>
-            <p>{$nota["contenido"]}</p>
-            <p><em>Creada: {$nota["fecha_creado"]}</em></p>
-            <button onclick='abrirModal({$nota["id_note"]})'>Compartir</button>
-            <button onclick='borrarNota({$nota["id_note"]})'>Borrar</button>
-        </div>";
+        <p><strong>Nota #{$nota['id_notes']}</strong></p>
+        <p>" . htmlspecialchars($nota['contenido']) . "</p>
+        <p><em>Creada: {$nota['fecha_creado']}</em></p>
+        <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
+        <form id='formBorrar{$nota['id_notes']}' method='POST'>
+            <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
+            <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
+        </form>
+    </div>";
     }
 } else {
     echo "<p>No hay notas creadas.</p>";
@@ -122,8 +125,8 @@ echo "
         
         function borrarNota(idNota) {
             if (confirm('¿Estás seguro de que quieres borrar esta nota?')) {
-                const formData = new FormData();
-                formData.append('id_note', idNota); // <-- pasamos el ID al servidor
+                const form = document.getElementById('formBorrar' + idNota);
+                const formData = new FormData(form);
         
                 fetch('borrar.php', {
                     method: 'POST',
@@ -131,12 +134,11 @@ echo "
                 })
                 .then(res => res.text())
                 .then(data => {
-                    document.getElementById('respuestaAjax').innerText = data;
-                    // Opcional: refrescar la página o eliminar visualmente la nota
-                    setTimeout(() => location.reload(), 1000);
+                    console.log(data);
+                    location.reload(); // recarga la página para reflejar los cambios
                 })
                 .catch(() => {
-                    document.getElementById('respuestaAjax').innerText = 'Error al borrar.';
+                    alert('Error al borrar la nota.');
                 });
             }
         }
