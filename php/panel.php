@@ -128,7 +128,7 @@ echo "
                 const form = document.getElementById('formBorrar' + idNota);
                 const formData = new FormData(form);
         
-                fetch('borrar.php', {
+                fetch('borrarNota.php', {
                     method: 'POST',
                     body: formData
                 })
