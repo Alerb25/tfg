@@ -3,8 +3,9 @@ create database proyecto;
 create user proyecto with password 'proyecto';
 grant all privileges on database proyecto to proyecto;
 \c proyecto
-grant all privileges on all tables in schema public to proyecto;
-grant all privileges on all sequences in schema public to proyecto;
+GRANT CONNECT ON DATABASE proyecto TO proytecto;
+GRANT pg_read_all_data TO proyecto;
+GRANT pg_write_all_data TO proyecto;
 --Tables
 
 --Usuario
