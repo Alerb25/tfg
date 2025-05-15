@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
 
     if (pg_num_rows($resultado) == 1) {
         $usuario = pg_fetch_assoc($resultado);
-        $_SESSION["Id_user"] = $usuario["id_user"];
+        $_SESSION["id_user"] = $usuario["id_user"];
         $_SESSION["Nombre"] = $usuario["nombre"];
 
         header("Location: panel.php");
