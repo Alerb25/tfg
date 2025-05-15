@@ -7,4 +7,5 @@ En este Read me se dejará por escrito lo que hay hecho hasta ahora y lo que hac
   Panel -- Donde van a estar todas las notas del usuario, solo queda revisar cómo hacer las notas compartidas
   Logout -- Redirecciona a Login pero cierra la sesion que esté abierta.
   comp -- pruebas para ver como hacer una nota compartida por varios usuarios  a la vez. 
+  borrar -- Para que se puedan borrar las notas.
   --HE ELIMINADO EL PG_DUMP no completo
