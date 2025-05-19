@@ -88,11 +88,14 @@ if (!empty($error)) {
             <p>" . htmlspecialchars($nota['contenido']) . "</p>
             <p><em>Creada: {$nota['fecha_creado']}</em></p>
             <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
+            <br></br>
             <form id='formBorrar{$nota['id_notes']}' method='POST'>
                 <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
                 <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
+                <br></br>
             </form>
             <button onclick='editarNota({$nota['id_notes']})'>Editar</button>
+            
         </div>";
     }
 } else {
