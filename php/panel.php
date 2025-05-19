@@ -79,26 +79,35 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h3>Notas Guardadas</h3>";
 
-if (!empty($error)) {
-    echo "<p style='color:red;'>$error</p>";
-} elseif (count($notas) > 0) {
+    if (!empty($error)) {
+        echo "<p style='color:red;'>$error</p>";
+    } elseif (count($notas) > 0) {
     foreach ($notas as $nota) {
         echo "<div class='nota'>
-        <p><strong>Nota #{$nota['id_notes']}</strong></p>
-        <p>" . htmlspecialchars($nota['contenido']) . "</p>
+        <p><strong>Nota #{$nota['id_notes']}</strong></p>";
+        echo "<p>" . htmlspecialchars($nota['contenido']) . "</p>";
+        echo"
         <p><em>Creada: {$nota['fecha_creado']}</em></p>
-        <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
         <br>
+        <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
+        <br>    
         <form id='formBorrar{$nota['id_notes']}' method='POST'>
             <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
             <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
         </form>
         <br>
-        <form action='editarnota.php' method='POST' style='display:inline;'>
-            <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
-            <button type='submit'>Editar</button>
+        <div id='modalEditar' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+        background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
+        <h3>Editar nota</h3>
+        <form id='formEditar'>
+            <input type='hidden' name='id_note' id='editar_id_note'>
+            <textarea name='contenido' id='editar_contenido' rows='5' style='width:100%;' required></textarea>
+            <br>
+            <button type='submit'>Guardar cambios</button>
+            <button type='button' onclick='cerrarModalEditar()'>Cancelar</button>
         </form>
-        </div>";
+        <div id='respuestaEditar' style='margin-top:10px;'></div>
+    </div>";
     }
 } else {
     echo "<p>No hay notas creadas.</p>";
@@ -147,6 +156,24 @@ echo "
                     alert('Error al borrar la nota.');
                 });
             }
+        }
+        
+        function editarNota(idNota) {
+            // Obtiene los datos de la nota actual
+            fetch('obtenerNota.php?id_note=' + idNota)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.contenido !== undefined) {
+                        document.getElementById('editar_id_note').value = idNota;
+                        document.getElementById('editar_contenido').value = data.contenido;
+                        document.getElementById('modalEditar').style.display = 'block';
+                    } else {
+                        alert('No se pudo cargar el contenido.');
+                    }
+                })
+                .catch(() => {
+                    alert('Error al cargar la nota.');
+                });
         }
         
 
