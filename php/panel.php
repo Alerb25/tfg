@@ -169,7 +169,8 @@ echo "
         }
 
         function editarNota(idNota) {
-            fetch('obtenerNota.php?id_note=' + idNota)
+            fetch('php/obtenerNota.php?id_note=' + idNota)
+
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.contenido !== undefined) {
