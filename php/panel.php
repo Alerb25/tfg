@@ -84,7 +84,6 @@ if (!empty($error)) {
 } elseif (count($notas) > 0) {
     foreach ($notas as $nota) {
         echo "<div class='nota'>
-            <p><strong>Nota #{$nota['id_notes']}</strong></p>
             <p>" . htmlspecialchars($nota['contenido']) . "</p>
             <p><em>Creada: {$nota['fecha_creado']}</em></p>
             <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
