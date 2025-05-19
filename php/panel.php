@@ -90,6 +90,7 @@ echo "<!DOCTYPE html>
         <p><em>Creada: {$nota['fecha_creado']}</em></p>
         <br>
         <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
+        </br>
         <br>    
         <form id='formBorrar{$nota['id_notes']}' method='POST'>
             <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
