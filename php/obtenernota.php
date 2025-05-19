@@ -10,6 +10,7 @@ if (!isset($_SESSION["id_user"])) {
 if (!isset($_GET['id_note'])) {
     echo json_encode(["error" => "ID de nota no proporcionado"]);
     exit();
+    
 }
 
 $id_note = intval($_GET['id_note']);
