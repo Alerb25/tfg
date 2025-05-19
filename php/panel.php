@@ -24,7 +24,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
 
     $insertar = "INSERT INTO nota (contenido, fecha_creado, fecha_editado, id_user) VALUES ('$contenido', '$fecha', '$fecha', $id_user)";
     if (pg_query($conexion, $insertar)) {
-        header("Location: panel.php"); // Evita reenvío del formulario
+        header("Location: panel.php");
         exit();
     } else {
         $error = "Error al guardar la nota.";
@@ -61,7 +61,7 @@ echo "<!DOCTYPE html>
         body { font-family: Arial; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
         .box { background: white; padding: 20px 100px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 400px; margin-bottom: 20px; }
         input, textarea { width: 100%; padding: 10px; margin: 8px 0; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
         .nota { background: #eef; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
@@ -79,43 +79,30 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h3>Notas Guardadas</h3>";
 
-    if (!empty($error)) {
-        echo "<p style='color:red;'>$error</p>";
-    } elseif (count($notas) > 0) {
+if (!empty($error)) {
+    echo "<p style='color:red;'>$error</p>";
+} elseif (count($notas) > 0) {
     foreach ($notas as $nota) {
         echo "<div class='nota'>
-        <p><strong>Nota #{$nota['id_notes']}</strong></p>";
-        echo "<p>" . htmlspecialchars($nota['contenido']) . "</p>";
-        echo"
-        <p><em>Creada: {$nota['fecha_creado']}</em></p>
-        <br>
-        <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
-        </br>
-        <br>    
-        <form id='formBorrar{$nota['id_notes']}' method='POST'>
-            <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
-            <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
-        </form>
-        </br>
-        <br>
-        <div id='modalEditar' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
-        background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
-        <h3>Editar nota</h3>
-        <form id='formEditar'>
-            <input type='hidden' name='id_note' id='editar_id_note'>
-            <textarea name='contenido' id='editar_contenido' rows='5' style='width:100%;' required></textarea>
-            <br>
-            <button type='submit'>Guardar cambios</button>
-            <button type='button' onclick='cerrarModalEditar()'>Cancelar</button>
-        </form>
-        <div id='respuestaEditar' style='margin-top:10px;'></div>
-    </div> </br>";
+            <p><strong>Nota #{$nota['id_notes']}</strong></p>
+            <p>" . htmlspecialchars($nota['contenido']) . "</p>
+            <p><em>Creada: {$nota['fecha_creado']}</em></p>
+            <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
+            <form id='formBorrar{$nota['id_notes']}' method='POST'>
+                <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
+                <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
+            </form>
+            <button onclick='editarNota({$nota['id_notes']})'>Editar</button>
+        </div>";
     }
 } else {
     echo "<p>No hay notas creadas.</p>";
 }
 
 echo "
+    </div>
+
+    <!-- Modal Compartir -->
     <div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
         background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
         <h3>Compartir nota</h3>
@@ -132,6 +119,20 @@ echo "
         <div id='respuestaAjax' style='margin-top:10px;'></div>
     </div>
 
+    <!-- Modal Editar -->
+    <div id='modalEditar' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+        background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
+        <h3>Editar nota</h3>
+        <form id='formEditar'>
+            <input type='hidden' name='id_note' id='editar_id_note'>
+            <textarea name='contenido' id='editar_contenido' rows='5' style='width:100%;' required></textarea>
+            <br>
+            <button type='submit'>Guardar cambios</button>
+            <button type='button' onclick='cerrarModalEditar()'>Cancelar</button>
+        </form>
+        <div id='respuestaEditar' style='margin-top:10px;'></div>
+    </div>
+
     <a href='logout.php'>Cerrar sesión</a>
 
     <script>
@@ -139,12 +140,17 @@ echo "
             document.getElementById('id_note_modal').value = idNota;
             document.getElementById('modalCompartir').style.display = 'block';
         }
-        
+
+        function cerrarModal() {
+            document.getElementById('modalCompartir').style.display = 'none';
+            document.getElementById('respuestaAjax').innerText = '';
+        }
+
         function borrarNota(idNota) {
             if (confirm('¿Estás seguro de que quieres borrar esta nota?')) {
                 const form = document.getElementById('formBorrar' + idNota);
                 const formData = new FormData(form);
-        
+
                 fetch('borrarNota.php', {
                     method: 'POST',
                     body: formData
@@ -152,16 +158,15 @@ echo "
                 .then(res => res.text())
                 .then(data => {
                     console.log(data);
-                    location.reload(); // recarga la página para reflejar los cambios
+                    location.reload();
                 })
                 .catch(() => {
                     alert('Error al borrar la nota.');
                 });
             }
         }
-        
+
         function editarNota(idNota) {
-            // Obtiene los datos de la nota actual
             fetch('obtenerNota.php?id_note=' + idNota)
                 .then(res => res.json())
                 .then(data => {
@@ -177,12 +182,29 @@ echo "
                     alert('Error al cargar la nota.');
                 });
         }
-        
 
-        function cerrarModal() {
-            document.getElementById('modalCompartir').style.display = 'none';
-            document.getElementById('respuestaAjax').innerText = '';
+        function cerrarModalEditar() {
+            document.getElementById('modalEditar').style.display = 'none';
+            document.getElementById('respuestaEditar').innerText = '';
         }
+
+        document.getElementById('formEditar').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            fetch('editarNota.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.text())
+            .then(data => {
+                document.getElementById('respuestaEditar').innerText = data;
+                setTimeout(() => location.reload(), 1000);
+            })
+            .catch(() => {
+                document.getElementById('respuestaEditar').innerText = 'Error al editar.';
+            });
+        });
 
         document.getElementById('formCompartir').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -202,3 +224,4 @@ echo "
     </script>
 </body>
 </html>";
+?>
