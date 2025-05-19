@@ -95,6 +95,7 @@ echo "<!DOCTYPE html>
             <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
             <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
         </form>
+        </br>
         <br>
         <div id='modalEditar' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
         background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
@@ -107,7 +108,7 @@ echo "<!DOCTYPE html>
             <button type='button' onclick='cerrarModalEditar()'>Cancelar</button>
         </form>
         <div id='respuestaEditar' style='margin-top:10px;'></div>
-    </div>";
+    </div> </br>";
     }
 } else {
     echo "<p>No hay notas creadas.</p>";
