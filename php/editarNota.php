@@ -58,7 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["editar_nota"])) {
 
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Editar Nota</title>
     <style>
