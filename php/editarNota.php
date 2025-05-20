@@ -58,8 +58,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_note"])) {
         }
     }
 }
-?>
 
+echo '
 <!DOCTYPE html>
 <html>
 <head>
@@ -100,11 +100,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_note"])) {
 <body>
     <h2>Editar Nota</h2>
     <form method="POST">
-        <input type="hidden" name="id_note" value="<?= htmlspecialchars($nota['id_notes']) ?>">
-        <textarea name="contenido" required><?= htmlspecialchars($nota['contenido']) ?></textarea>
+        <input type="hidden" name="id_note" value="<?= htmlspecialchars($nota["id_notes"]) ?>">
+        <textarea name="contenido" required><?= htmlspecialchars($nota["contenido"]) ?></textarea>
         <br>
         <button type="submit" name="editar_nota">Guardar Cambios</button>
     </form>
 </body>
 
 </html>
+'
+
+?>
