@@ -1,19 +1,18 @@
 <?php
 session_start();
 
-// Conexión única a la base de datos (PostgreSQL)
+// Conexión a la base de datos
 $conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
     die("Error de conexión con la base de datos");
 }
 
-// Verifica si hay sesión activa
+// Verificar sesión
 if (!isset($_SESSION["id_user"])) {
     header("Location: login.php");
     exit();
 }
 
-// Datos del usuario
 $id_user = intval($_SESSION["id_user"]);
 $nombre = $_SESSION["Nombre"];
 
@@ -31,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     }
 }
 
-// Obtener las notas del usuario
+// Obtener notas propias y compartidas
 $consulta = "
 SELECT DISTINCT n.* 
 FROM nota n
@@ -87,14 +86,13 @@ if (!empty($error)) {
             <p>" . htmlspecialchars($nota['contenido']) . "</p>
             <p><em>Creada: {$nota['fecha_creado']}</em></p>
             <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
-            <br></br>
+            <br><br>
             <form id='formBorrar{$nota['id_notes']}' method='POST'>
                 <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
                 <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
-                <br></br>
             </form>
+            <br>
             <button onclick='editarNota({$nota['id_notes']})'>Editar</button>
-            
         </div>";
     }
 } else {
@@ -158,18 +156,13 @@ echo "
                     body: formData
                 })
                 .then(res => res.text())
-                .then(data => {
-                    console.log(data);
-                    location.reload();
-                })
-                .catch(() => {
-                    alert('Error al borrar la nota.');
-                });
+                .then(() => location.reload())
+                .catch(() => alert('Error al borrar la nota.'));
             }
         }
 
         function editarNota(idNota) {
-            fetch('/php/obtenerNota.php?id_note=' + idNota)  
+            fetch('/php/obtenerNota.php?id_note=' + idNota)
                 .then(res => res.json())
                 .then(data => {
                     if (data && data.contenido !== undefined) {
@@ -180,9 +173,7 @@ echo "
                         alert('No se pudo cargar el contenido.');
                     }
                 })
-                .catch(() => {
-                    alert('Error al cargar la nota.');
-                });
+                .catch(() => alert('Error al cargar la nota.'));
         }
 
         function cerrarModalEditar() {
@@ -194,7 +185,7 @@ echo "
             e.preventDefault();
             const formData = new FormData(this);
 
-            fetch('editarNota.php', {
+            fetch('actualizarNota.php', {
                 method: 'POST',
                 body: formData
             })
