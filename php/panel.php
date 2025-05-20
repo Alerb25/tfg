@@ -123,7 +123,7 @@ echo "
 
     <!-- Modal Editar -->
     <div id='modalEditar' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
-        background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
+        background:#fff; padding:20px 50px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
         <h3>Editar nota</h3>
         <form id='formEditar'>
             <input type='hidden' name='id_note' id='editar_id_note'>

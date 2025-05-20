@@ -21,16 +21,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_note"])) {
      SELECT n.* FROM nota n
      LEFT JOIN compartir c ON n.id_notes = c.id_notes
      WHERE n.id_notes = $idNota AND (
-         n.id_user = $id_user OR (c.id_user = $id_user AND c.permiso = 'edicion')
+         n.id_user = $id_user OR (c.id_user = $id_user AND c.permisos = 'edicion')
      )
  ");
 
-    if (pg_num_rows($consulta) === 1) {
-        $nota = pg_fetch_assoc($consulta);
-    } else {
-        die("No tienes permiso para editar esta nota.");
-    }
-}
+ $consulta = pg_query($conexion, $sql);
+
+ if (!$consulta) {
+     die("Error en la consulta: " . pg_last_error($conexion));
+ }
+ 
+ if (pg_num_rows($consulta) === 1) {
+     // todo bien
+     $nota = pg_fetch_assoc($consulta);
+ }
+
+ 
 
 // Si el usuario envía el formulario con el nuevo contenido
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["editar_nota"])) {
@@ -43,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["editar_nota"])) {
     WHERE id_notes = $idNota AND (
         id_user = $id_user OR EXISTS (
             SELECT 1 FROM compartir 
-            WHERE id_notes = nota.id_notes AND id_user = $id_user AND permiso = 'edicion'
+            WHERE id_notes = nota.id_notes AND id_user = $id_user AND permisos = 'edicion'
         )
     )
 ");
@@ -58,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["editar_nota"])) {
     <style>
         body {
             font-family: Arial;
-            padding: 20px;
+            padding: 20px 50px;
             background: #f0f0f0;
         }
 
@@ -99,4 +105,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["editar_nota"])) {
 </body>
 
 </html>
-?>
