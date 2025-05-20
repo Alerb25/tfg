@@ -49,6 +49,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_note"])) {
                 )
             )
         ");
+
+        if (!$update) {
+            die("Error al actualizar la nota: " . pg_last_error($conexion));
+        } else {
+            echo "Nota actualizada correctamente.";
+            exit();
+        }
     }
 }
 ?>
