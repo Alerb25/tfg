@@ -65,7 +65,7 @@ echo "<!DOCTYPE html>
     </style>
 </head>
 <body>
-    <h2>Bienvenido, $nombre</h2>
+    <h2>¡Hola!, $nombre</h2>
 
     <div class='box'>
         <h3>Crear Nueva Nota</h3>
