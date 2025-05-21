@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Conexión segura a PostgreSQL
+// Conexión a la base de datos
 $conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
     die("Error de conexión con la base de datos");
@@ -17,26 +17,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["login"])) {
     $mail = filter_var($_POST["mail"], FILTER_SANITIZE_EMAIL);
     $password = $_POST["password"];
 
-    // Validar email
     if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
         $error = "Correo inválido";
     } else {
-        // Buscar usuario por correo
-        $query = "SELECT * FROM usuario WHERE mail = $1";
-        $result = pg_query_params($conexion, $query, [$mail]);
+        $query = "SELECT * FROM usuario WHERE mail = $1 AND password = $2";
+        $result = pg_query_params($conexion, $query, [$mail, $password]);
 
         if ($result && pg_num_rows($result) === 1) {
             $usuario = pg_fetch_assoc($result);
-
-            // Verificar contraseña hasheada
-            if (password_verify($password, $usuario["password"])) {
-                $_SESSION["id_user"] = $usuario["id_user"];
-                $_SESSION["Nombre"] = $usuario["nombre"];
-                header("Location: panel.php");
-                exit();
-            } else {
-                $error = "Correo o contraseña incorrectos";
-            }
+            $_SESSION["id_user"] = $usuario["id_user"];
+            $_SESSION["Nombre"] = $usuario["nombre"];
+            header("Location: panel.php");
+            exit();
         } else {
             $error = "Correo o contraseña incorrectos";
         }
@@ -51,25 +43,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["register"])) {
     $p_apellido = sanear($_POST["p_apellido"]);
     $s_apellido = sanear($_POST["s_apellido"]);
 
-    // Validaciones
     if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
         $error = "Correo inválido";
     } elseif (strlen($password) < 6) {
         $error = "La contraseña debe tener al menos 6 caracteres";
     } else {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        // Verificar si ya existe el correo
         $query_check = "SELECT 1 FROM usuario WHERE mail = $1";
         $check = pg_query_params($conexion, $query_check, [$mail]);
 
         if (pg_num_rows($check) > 0) {
             $error = "El correo ya está en uso";
         } else {
-            // Insertar con parámetros
             $query_insert = "INSERT INTO usuario (nombre, password, mail, p_apellido, s_apellido) 
                              VALUES ($1, $2, $3, $4, $5)";
-            $params = [$nombre, $hashedPassword, $mail, $p_apellido, $s_apellido];
+            $params = [$nombre, $password, $mail, $p_apellido, $s_apellido];
             $insert = pg_query_params($conexion, $query_insert, $params);
 
             if ($insert) {
@@ -110,7 +97,6 @@ if (!empty($error)) echo "<p class='error'>$error</p>";
 if (!empty($exito)) echo "<p class='exito'>$exito</p>";
 
 echo "</div>
-
     <div class='box'>
         <h2>Crear Cuenta</h2>
         <form method='POST'>
