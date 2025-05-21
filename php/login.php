@@ -1,65 +1,87 @@
 <?php
 session_start();
 
-// Conexión a la base de datos (PostgreSQL)
+// Conexión segura a PostgreSQL
 $conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
-
-
 if (!$conexion) {
     die("Error de conexión con la base de datos");
 }
 
-// Login 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
-    $mail = trim(pg_escape_string($conexion, $_POST["mail"]));
-    $password = trim(pg_escape_string($conexion, $_POST["password"]));
-
-    $consulta = "SELECT * FROM usuario WHERE mail = '$mail' AND password = '$password'";
-    $resultado = pg_query($conexion, $consulta);
-
-    if (!$resultado) {
-        die("Error en la consulta SQL: " . pg_last_error($conexion));
-    }
-
-    if (pg_num_rows($resultado) == 1) {
-        $usuario = pg_fetch_assoc($resultado);
-        $_SESSION["id_user"] = $usuario["id_user"];
-        $_SESSION["Nombre"] = $usuario["nombre"];
-
-        header("Location: panel.php");
-        exit();
-    } else {
-        $error = "Correo o contraseña incorrectos";
-    }
+// Función para sanear datos
+function sanear($data) {
+    return htmlspecialchars(trim($data));
 }
 
-
-// Registro
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["register"])) {
-    $mail = $_POST["new_mail"];
+// LOGIN
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["login"])) {
+    $mail = filter_var($_POST["mail"], FILTER_SANITIZE_EMAIL);
     $password = $_POST["password"];
-    $nombre = $_POST["nombre"];
-    $p_apellido = $_POST["p_apellido"];
-    $s_apellido = $_POST["s_apellido"];
 
-    $verificar = "SELECT * FROM usuario WHERE mail='$mail'";
-    $existe = pg_query($conexion, $verificar);
-
-    $insertar = "INSERT INTO usuario (id_user, nombre, password, mail, p_apellido, s_apellido) 
-    VALUES (DEFAULT, '$nombre', '$password', '$mail', '$p_apellido', '$s_apellido')";
-
-    if (@pg_query($conexion, $insertar)) {
-        $exito = "Registro exitoso. Ahora puedes iniciar sesión";
+    // Validar email
+    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+        $error = "Correo inválido";
     } else {
-        if (str_contains(pg_last_error($conexion), 'duplicate key')) {
-            $error = "El correo ya está en uso. Prueba con otro.";
+        // Buscar usuario por correo
+        $query = "SELECT * FROM usuario WHERE mail = $1";
+        $result = pg_query_params($conexion, $query, [$mail]);
+
+        if ($result && pg_num_rows($result) === 1) {
+            $usuario = pg_fetch_assoc($result);
+
+            // Verificar contraseña hasheada
+            if (password_verify($password, $usuario["password"])) {
+                $_SESSION["id_user"] = $usuario["id_user"];
+                $_SESSION["Nombre"] = $usuario["nombre"];
+                header("Location: panel.php");
+                exit();
+            } else {
+                $error = "Correo o contraseña incorrectos";
+            }
         } else {
-            $error = "Error al crear la cuenta: " . pg_last_error($conexion);
+            $error = "Correo o contraseña incorrectos";
         }
     }
 }
 
-// HTML pintado con echo
+// REGISTRO
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["register"])) {
+    $mail = filter_var($_POST["new_mail"], FILTER_SANITIZE_EMAIL);
+    $password = $_POST["password"];
+    $nombre = sanear($_POST["nombre"]);
+    $p_apellido = sanear($_POST["p_apellido"]);
+    $s_apellido = sanear($_POST["s_apellido"]);
+
+    // Validaciones
+    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+        $error = "Correo inválido";
+    } elseif (strlen($password) < 6) {
+        $error = "La contraseña debe tener al menos 6 caracteres";
+    } else {
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        // Verificar si ya existe el correo
+        $query_check = "SELECT 1 FROM usuario WHERE mail = $1";
+        $check = pg_query_params($conexion, $query_check, [$mail]);
+
+        if (pg_num_rows($check) > 0) {
+            $error = "El correo ya está en uso";
+        } else {
+            // Insertar con parámetros
+            $query_insert = "INSERT INTO usuario (nombre, password, mail, p_apellido, s_apellido) 
+                             VALUES ($1, $2, $3, $4, $5)";
+            $params = [$nombre, $hashedPassword, $mail, $p_apellido, $s_apellido];
+            $insert = pg_query_params($conexion, $query_insert, $params);
+
+            if ($insert) {
+                $exito = "Registro exitoso. Ya puedes iniciar sesión.";
+            } else {
+                $error = "Error al registrar el usuario.";
+            }
+        }
+    }
+}
+
+// HTML
 echo "<!DOCTYPE html>
 <html>
 <head>
@@ -79,7 +101,7 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h2>Iniciar Sesión</h2>
         <form method='POST'>
-            <input type='mail' name='mail' placeholder='Correo' required>
+            <input type='email' name='mail' placeholder='Correo' required>
             <input type='password' name='password' placeholder='Contraseña' required>
             <button type='submit' name='login'>Entrar</button>
         </form>";
@@ -87,7 +109,7 @@ echo "<!DOCTYPE html>
 if (!empty($error)) echo "<p class='error'>$error</p>";
 if (!empty($exito)) echo "<p class='exito'>$exito</p>";
 
-echo "  </div>
+echo "</div>
 
     <div class='box'>
         <h2>Crear Cuenta</h2>
@@ -95,10 +117,11 @@ echo "  </div>
             <input type='text' name='nombre' placeholder='Nombre' required>
             <input type='text' name='p_apellido' placeholder='Primer Apellido' required>
             <input type='text' name='s_apellido' placeholder='Segundo Apellido' required>
-            <input type='mail' name='new_mail' placeholder='Correo' required>
-            <input type='password' name='password' placeholder='Contraseña' required>
+            <input type='email' name='new_mail' placeholder='Correo' required>
+            <input type='password' name='password' placeholder='Contraseña (mín. 6 caracteres)' required>
             <button type='submit' name='register'>Registrarse</button>
         </form>
     </div>
 </body>
 </html>";
+?>
