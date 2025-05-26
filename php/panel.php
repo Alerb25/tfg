@@ -108,7 +108,38 @@ echo "
         <h3>Compartir nota</h3>
         <form id='formCompartir'>
             <input type='hidden' name='id_note' id='id_note_modal'>
-            <input type='email' name='email_usuario' placeholder='Correo del usuario' required> 
+            <input type='email' name='email_usuario' id='correo_destino' placeholder='Correo del usuario' required>
+            <ul id='sugerencias' style='list-style:none; padding-left:0; margin-top:5px;'></ul> 
+
+             <script>
+             document.getElementById('correo_destino').addEventListener('input', async function () {
+                const input = this.value;
+            
+                if (input.length > 1) {
+                    try {
+                        const response = await fetch(`buscar_correos.php?correo=encodeURIComponent(input)`);
+                        const sugerencias = await response.json();
+            
+                        const lista = document.getElementById('sugerencias');
+                        lista.innerHTML = ''; // Limpiar lista
+            
+                        sugerencias.slice(0, 3).forEach(correo => {
+                            const li = document.createElement('li');
+                            li.textContent = correo;
+                            li.style.cursor = 'pointer';
+                            li.onclick = () => {
+                                document.getElementById('correo_destino').value = correo;
+                                lista.innerHTML = ''; // Ocultar sugerencias
+                            };
+                            lista.appendChild(li);
+                        });
+                    } catch (e) {
+                        console.error('Error al buscar sugerencias');
+                    }
+                }
+            });
+            
+            </script>
             <select name='permisos'>
                 <option value='lectura'>Lectura</option>
                 <option value='edicion'>Edición</option>
