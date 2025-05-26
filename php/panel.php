@@ -18,12 +18,27 @@ $nombre = $_SESSION["Nombre"];
 
 // Guardar nueva nota
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
-    $contenido = pg_escape_string($conexion, $_POST["nota"]);
     $titulo = pg_escape_string($conexion, $_POST["titulo"]);
+    $contenido = pg_escape_string($conexion, $_POST["nota"]);
+    $etiquetas = explode(',', $_POST["etiquetas"]); // CAMBIO
     $fecha = date("Y-m-d");
 
     $insertar = "INSERT INTO nota (contenido, titulo, fecha_creado, fecha_editado, id_user) VALUES ('$contenido', '$titulo', '$fecha', '$fecha', $id_user)";
     if (pg_query($conexion, $insertar)) {
+        // Obtener ID de la nota recién insertada
+        $res = pg_query($conexion, "SELECT currval(pg_get_serial_sequence('nota','id_notes')) AS id_nota");
+        $row = pg_fetch_assoc($res);
+        $id_nota_nueva = $row['id_nota'];
+
+        // Insertar etiquetas (si las hay)
+        foreach ($etiquetas as $etiqueta) {
+            $nombre_etiqueta = trim($etiqueta);
+            if ($nombre_etiqueta !== "") {
+                $nombre_etiqueta_esc = pg_escape_string($conexion, $nombre_etiqueta);
+                pg_query($conexion, "INSERT INTO etiqueta (nombre, id_note) VALUES ('$nombre_etiqueta_esc', $id_nota_nueva)");
+            }
+        }
+
         header("Location: panel.php");
         exit();
     } else {
@@ -40,6 +55,14 @@ ORDER BY fecha_creado DESC;
 $resPropias = pg_query($conexion, $consultaPropias);
 $notasPropias = [];
 while ($fila = pg_fetch_assoc($resPropias)) {
+    // Añadir etiquetas a cada nota
+    $id_nota = $fila['id_notes'];
+    $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_note = $id_nota");
+    $etiquetas = [];
+    while ($et = pg_fetch_assoc($res_etiquetas)) {
+        $etiquetas[] = $et['nombre'];
+    }
+    $fila['etiquetas'] = $etiquetas;
     $notasPropias[] = $fila;
 }
 
@@ -81,9 +104,10 @@ echo "<!DOCTYPE html>
         <form method='POST'>
         <input type='text' name='titulo' placeholder='Título de la nota' required>
         <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea>
+        <input type='text' name='etiquetas' placeholder='Etiquetas separadas por comas (opcional)'>
         <button type='submit' name='guardar'>Guardar</button>
     </form>
-        </form>
+    
     </div>
 
     <div class='box'>
@@ -95,6 +119,7 @@ if (!empty($error)) {
         echo "<div class='nota'>
             <p>" . htmlspecialchars($nota['titulo']) . "</p>
             <p>" . htmlspecialchars($nota['contenido']) . "</p>
+            <p><strong>Etiquetas:</strong> " . implode(", ", array_map('htmlspecialchars', $nota['etiquetas'])) . "</p>
             <p><em>Creada: {$nota['fecha_creado']}</em></p>
             <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
             <form id='formBorrar{$nota['id_notes']}' method='POST'>

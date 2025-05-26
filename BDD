@@ -25,7 +25,7 @@ alter table compartir add constraint fk_notes foreign key (id_Notes) References 
 alter table compartir add constraint fk_user foreign key (id_User) References usuario (id_User);
  
 --Etiqueta
-create table etiqueta (id_Tag SERIAL, nombre varchar(30) );
+create table etiqueta (id_Tag SERIAL, nombre varchar(30), id_note INTEGER REFERENCES nota(id_notes) ON DELETE CASCADE);
 alter table etiqueta add primary key (id_Tag);
   
  
