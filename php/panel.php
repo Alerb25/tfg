@@ -126,7 +126,7 @@ echo "</div>";
     background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
     <h3>Compartir nota</h3>
     <form id='formCompartir'>
-        <input type='hidden' name='id_note' id='id_note_modal'>
+    <input type="hidden" name="id_note" id="id_note_modal">
         <input type='email' name='email_usuario' id='correo_destino' placeholder='Correo del usuario' required>
         <select name='permisos'>
             <option value='lectura'>Lectura</option>
