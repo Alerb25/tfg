@@ -19,9 +19,10 @@ $nombre = $_SESSION["Nombre"];
 // Guardar nueva nota
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     $contenido = pg_escape_string($conexion, $_POST["nota"]);
+    $titulo = pg_escape_string($conexion, $_POST["titulo"]);
     $fecha = date("Y-m-d");
 
-    $insertar = "INSERT INTO nota (contenido, fecha_creado, fecha_editado, id_user) VALUES ('$contenido', '$fecha', '$fecha', $id_user)";
+    $insertar = "INSERT INTO nota (contenido, titulo, fecha_creado, fecha_editado, id_user) VALUES ('$contenido', '$titulo', '$fecha', '$fecha', $id_user)";
     if (pg_query($conexion, $insertar)) {
         header("Location: panel.php");
         exit();
@@ -78,8 +79,10 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h3>Crear Nueva Nota</h3>
         <form method='POST'>
-            <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea>
-            <button type='submit' name='guardar'>Guardar</button>
+        <input type='text' name='titulo' placeholder='Título de la nota' required>
+        <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea>
+        <button type='submit' name='guardar'>Guardar</button>
+    </form>
         </form>
     </div>
 
@@ -90,6 +93,7 @@ if (!empty($error)) {
 } elseif (count($notasPropias) > 0) {
     foreach ($notasPropias as $nota) {
         echo "<div class='nota'>
+            <p>" . htmlspecialchars($nota['titulo']) . "</p>
             <p>" . htmlspecialchars($nota['contenido']) . "</p>
             <p><em>Creada: {$nota['fecha_creado']}</em></p>
             <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
@@ -119,14 +123,15 @@ if (count($notasCompartidas) > 0) {
     echo "<p>No hay notas compartidas contigo.</p>";
 }
 echo "</div>";
-?>
+
+echo"
 
 <!-- Modal Compartir -->
 <div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
     background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
     <h3>Compartir nota</h3>
     <form id='formCompartir'>
-    <input type="hidden" name="id_note" id="id_note_modal">
+    <input type='hidden' name='id_note' id='id_note_modal>
         <input type='email' name='email_usuario' id='correo_destino' placeholder='Correo del usuario' required>
         <select name='permisos'>
             <option value='lectura'>Lectura</option>
@@ -234,3 +239,5 @@ echo "</div>";
 </script>
 </body>
 </html>
+";
+?>

@@ -14,7 +14,7 @@ alter table usuario add primary key (id_User);
 alter table usuario add constraint uk_mail unique (mail);
 
 --nota
-create table nota (id_Notes SERIAL, id_User int, contenido varchar(300), fecha_creado date, fecha_editado date);
+create table nota (id_Notes SERIAL, id_User int, contenido varchar(300), titulo varchar(300), fecha_creado date, fecha_editado date);
 alter table nota add primary key (id_Notes);
 alter table nota add constraint fk_user foreign key (id_User) References usuario (id_User);
  
