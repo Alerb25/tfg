@@ -28,10 +28,6 @@ alter table compartir add constraint fk_user foreign key (id_User) References us
 create table etiqueta (id_Tag SERIAL, nombre varchar(30), id_note INTEGER REFERENCES nota(id_notes) ON DELETE CASCADE);
 alter table etiqueta add primary key (id_Tag);
   
- 
---Archivo
-create table archivo (id_File SERIAL, nombre varchar(30), tipo varchar(30));
-alter table archivo add primary key (id_File);
 
 --Tiene 
 create or replace view tiene 
