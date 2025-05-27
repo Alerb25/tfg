@@ -20,27 +20,28 @@ $nombre = $_SESSION["Nombre"];
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     $titulo = pg_escape_string($conexion, $_POST["titulo"]);
     $contenido = pg_escape_string($conexion, $_POST["nota"]);
-    $etiquetas = explode(',', $_POST["etiquetas"]); // CAMBIO
+    $etiquetas = explode(',', $_POST["etiquetas"]);
     $fecha = date("Y-m-d");
 
     $insertar = "INSERT INTO nota (contenido, titulo, fecha_creado, fecha_editado, id_user) VALUES ('$contenido', '$titulo', '$fecha', '$fecha', $id_user)";
     if (pg_query($conexion, $insertar)) {
         // Obtener ID de la nota recién insertada
-        $res = pg_query($conexion, "SELECT currval(pg_get_serial_sequence('nota','id_notes')) AS id_nota");
-        $row = pg_fetch_assoc($res);
-        $id_nota_nueva = $row['id_nota'];
+        $res = pg_query($conexion, "SELECT currval(pg_get_serial_sequence('nota','id_notes')) AS id_notes");
+        if ($res && ($row = pg_fetch_assoc($res))) {
+            $id_nota_nueva = $row['id_notes'];
 
-        // Insertar etiquetas (si las hay)
-        foreach ($etiquetas as $etiqueta) {
-            $nombre_etiqueta = trim($etiqueta);
-            if ($nombre_etiqueta !== "") {
-                $nombre_etiqueta_esc = pg_escape_string($conexion, $nombre_etiqueta);
-                pg_query($conexion, "INSERT INTO etiqueta (nombre, id_note) VALUES ('$nombre_etiqueta_esc', $id_nota_nueva)");
+            // Insertar etiquetas
+            foreach ($etiquetas as $etiqueta) {
+                $nombre_etiqueta = trim($etiqueta);
+                if ($nombre_etiqueta !== "") {
+                    $nombre_etiqueta_esc = pg_escape_string($conexion, $nombre_etiqueta);
+                    pg_query($conexion, "INSERT INTO etiqueta (nombre, id_notes) VALUES ('$nombre_etiqueta_esc', $id_nota_nueva)");
+                }
             }
-        }
 
-        header("Location: panel.php");
-        exit();
+            header("Location: panel.php");
+            exit();
+        }
     } else {
         $error = "Error al guardar la nota.";
     }
@@ -55,12 +56,13 @@ ORDER BY fecha_creado DESC;
 $resPropias = pg_query($conexion, $consultaPropias);
 $notasPropias = [];
 while ($fila = pg_fetch_assoc($resPropias)) {
-    // Añadir etiquetas a cada nota
     $id_nota = $fila['id_notes'];
-    $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_note = $id_nota");
+    $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_notes = $id_nota");
     $etiquetas = [];
-    while ($et = pg_fetch_assoc($res_etiquetas)) {
-        $etiquetas[] = $et['nombre'];
+    if ($res_etiquetas) {
+        while ($et = pg_fetch_assoc($res_etiquetas)) {
+            $etiquetas[] = $et['nombre'];
+        }
     }
     $fila['etiquetas'] = $etiquetas;
     $notasPropias[] = $fila;
@@ -102,12 +104,11 @@ echo "<!DOCTYPE html>
     <div class='box'>
         <h3>Crear Nueva Nota</h3>
         <form method='POST'>
-        <input type='text' name='titulo' placeholder='Título de la nota' required>
-        <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea>
-        <input type='text' name='etiquetas' placeholder='Etiquetas separadas por comas (opcional)'>
-        <button type='submit' name='guardar'>Guardar</button>
-    </form>
-    
+            <input type='text' name='titulo' placeholder='Título de la nota' required>
+            <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea>
+            <input type='text' name='etiquetas' placeholder='Etiquetas separadas por comas (opcional)'>
+            <button type='submit' name='guardar'>Guardar</button>
+        </form>
     </div>
 
     <div class='box'>
@@ -134,8 +135,7 @@ if (!empty($error)) {
 }
 echo "</div>";
 
-echo "
-<div class='box'>
+echo "<div class='box'>
     <h3>Notas Compartidas Conmigo</h3>";
 if (count($notasCompartidas) > 0) {
     foreach ($notasCompartidas as $nota) {
@@ -147,16 +147,14 @@ if (count($notasCompartidas) > 0) {
 } else {
     echo "<p>No hay notas compartidas contigo.</p>";
 }
-echo "</div>";
-
-echo"
+echo "</div>
 
 <!-- Modal Compartir -->
 <div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
     background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
     <h3>Compartir nota</h3>
     <form id='formCompartir'>
-    <input type='hidden' name='id_note' id='id_note_modal>
+        <input type='hidden' name='id_note' id='id_note_modal'>
         <input type='email' name='email_usuario' id='correo_destino' placeholder='Correo del usuario' required>
         <select name='permisos'>
             <option value='lectura'>Lectura</option>
@@ -185,84 +183,75 @@ echo"
 <a href='logout.php'>Cerrar sesión</a>
 
 <script>
-    function abrirModal(idNota) {
-        document.getElementById('id_note_modal').value = idNota;
-        document.getElementById('modalCompartir').style.display = 'block';
-    }
-
-    function cerrarModal() {
-        document.getElementById('modalCompartir').style.display = 'none';
-        document.getElementById('respuestaAjax').innerText = '';
-    }
-
-    function borrarNota(idNota) {
-        if (confirm('¿Estás seguro de que quieres borrar esta nota?')) {
-            const form = document.getElementById('formBorrar' + idNota);
-            const formData = new FormData(form);
-            fetch('borrarNota.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.text())
-            .then(() => location.reload())
-            .catch(() => alert('Error al borrar la nota.'));
-        }
-    }
-
-    function editarNota(idNota) {
-        fetch('/php/obtenerNota.php?id_note=' + idNota)
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.contenido !== undefined) {
-                    document.getElementById('editar_id_note').value = idNota;
-                    document.getElementById('editar_contenido').value = data.contenido;
-                    document.getElementById('modalEditar').style.display = 'block';
-                } else {
-                    alert('No se pudo cargar el contenido.');
-                }
-            })
-            .catch(() => alert('Error al cargar la nota.'));
-    }
-
-    function cerrarModalEditar() {
-        document.getElementById('modalEditar').style.display = 'none';
-        document.getElementById('respuestaEditar').innerText = '';
-    }
-
-    document.getElementById('formEditar').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('actualizarNota.php', {
+function abrirModal(idNota) {
+    document.getElementById('id_note_modal').value = idNota;
+    document.getElementById('modalCompartir').style.display = 'block';
+}
+function cerrarModal() {
+    document.getElementById('modalCompartir').style.display = 'none';
+    document.getElementById('respuestaAjax').innerText = '';
+}
+function borrarNota(idNota) {
+    if (confirm('¿Estás seguro de que quieres borrar esta nota?')) {
+        const form = document.getElementById('formBorrar' + idNota);
+        const formData = new FormData(form);
+        fetch('borrarNota.php', {
             method: 'POST',
             body: formData
-        })
-        .then(res => res.text())
+        }).then(() => location.reload())
+          .catch(() => alert('Error al borrar la nota.'));
+    }
+}
+function editarNota(idNota) {
+    fetch('/php/obtenerNota.php?id_note=' + idNota)
+        .then(res => res.json())
         .then(data => {
-            document.getElementById('respuestaEditar').innerText = data;
-            setTimeout(() => location.reload(), 1000);
+            if (data && data.contenido !== undefined) {
+                document.getElementById('editar_id_note').value = idNota;
+                document.getElementById('editar_contenido').value = data.contenido;
+                document.getElementById('modalEditar').style.display = 'block';
+            } else {
+                alert('No se pudo cargar el contenido.');
+            }
         })
-        .catch(() => {
-            document.getElementById('respuestaEditar').innerText = 'Error al editar.';
-        });
+        .catch(() => alert('Error al cargar la nota.'));
+}
+function cerrarModalEditar() {
+    document.getElementById('modalEditar').style.display = 'none';
+    document.getElementById('respuestaEditar').innerText = '';
+}
+document.getElementById('formEditar').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch('actualizarNota.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById('respuestaEditar').innerText = data;
+        setTimeout(() => location.reload(), 1000);
+    })
+    .catch(() => {
+        document.getElementById('respuestaEditar').innerText = 'Error al editar.';
     });
-
-    document.getElementById('formCompartir').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch('compartir.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('respuestaAjax').innerText = data;
-        })
-        .catch(() => {
-            document.getElementById('respuestaAjax').innerText = 'Error al compartir.';
-        });
+});
+document.getElementById('formCompartir').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch('compartir.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById('respuestaAjax').innerText = data;
+    })
+    .catch(() => {
+        document.getElementById('respuestaAjax').innerText = 'Error al compartir.';
     });
+});
 </script>
 </body>
-</html>
-";
+</html>";
 ?>
