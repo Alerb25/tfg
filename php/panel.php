@@ -1,13 +1,11 @@
 <?php
 session_start();
 
-// Conexión a la base de datos
 $conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
-    die("Error de conexión con la base de datos");
+    die("Error al conectar con la base de datos.");
 }
 
-// Verificar sesión
 if (!isset($_SESSION["id_user"])) {
     header("Location: login.php");
     exit();
@@ -16,29 +14,25 @@ if (!isset($_SESSION["id_user"])) {
 $id_user = intval($_SESSION["id_user"]);
 $nombre = $_SESSION["Nombre"];
 
-// Guardar nueva nota
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     $titulo = pg_escape_string($conexion, $_POST["titulo"]);
     $contenido = pg_escape_string($conexion, $_POST["nota"]);
     $etiquetas = explode(',', $_POST["etiquetas"]);
     $fecha = date("Y-m-d");
 
-    $insertar = "INSERT INTO nota (contenido, titulo, fecha_creado, fecha_editado, id_user) VALUES ('$contenido', '$titulo', '$fecha', '$fecha', $id_user)";
+    $insertar = "INSERT INTO nota (contenido, titulo, fecha_creado, fecha_editado, id_user) 
+                 VALUES ('$contenido', '$titulo', '$fecha', '$fecha', $id_user)";
     if (pg_query($conexion, $insertar)) {
-        // Obtener ID de la nota recién insertada
         $res = pg_query($conexion, "SELECT currval(pg_get_serial_sequence('nota','id_notes')) AS id_notes");
         if ($res && ($row = pg_fetch_assoc($res))) {
             $id_nota_nueva = $row['id_notes'];
-
-            // Insertar etiquetas
             foreach ($etiquetas as $etiqueta) {
                 $nombre_etiqueta = trim($etiqueta);
                 if ($nombre_etiqueta !== "") {
                     $nombre_etiqueta_esc = pg_escape_string($conexion, $nombre_etiqueta);
-                    pg_query($conexion, "INSERT INTO etiqueta (nombre, id_notes) VALUES ('$nombre_etiqueta_esc', $id_nota_nueva)");
+                    pg_query($conexion, "INSERT INTO etiqueta (nombre, id_note) VALUES ('$nombre_etiqueta_esc', $id_nota_nueva)");
                 }
             }
-
             header("Location: panel.php");
             exit();
         }
@@ -47,118 +41,96 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
     }
 }
 
-// Notas propias
-$consultaPropias = "
-SELECT * FROM nota
-WHERE id_user = $id_user
-ORDER BY fecha_creado DESC;
-";
+echo "<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <title>Panel de Notas</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+        .nota { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
+        textarea { width: 100%; height: 100px; }
+        button { margin-right: 5px; }
+    </style>
+</head>
+<body>";
+
+echo "<h2>¡Hola!, $nombre</h2>";
+
+echo "<div class='box'>
+<form method='POST'>
+    <input type='text' name='titulo' placeholder='Título de la nota' required><br><br>
+    <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea><br><br>
+    <input type='text' name='etiquetas' placeholder='Etiquetas separadas por comas (opcional)'><br><br>
+    <button type='submit' name='guardar'>Guardar</button>
+</form>
+</div>";
+
+$consultaPropias = "SELECT * FROM nota WHERE id_user = $id_user ORDER BY fecha_creado DESC";
 $resPropias = pg_query($conexion, $consultaPropias);
 $notasPropias = [];
+
 while ($fila = pg_fetch_assoc($resPropias)) {
     $id_nota = $fila['id_notes'];
     $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_note = $id_nota");
     $etiquetas = [];
+
     if ($res_etiquetas) {
         while ($et = pg_fetch_assoc($res_etiquetas)) {
             $etiquetas[] = $et['nombre'];
         }
     }
+
     $fila['etiquetas'] = $etiquetas;
     $notasPropias[] = $fila;
 }
 
-// Notas compartidas contigo
+echo "<div class='box'>
+<h3>Mis Notas</h3>";
+
+foreach ($notasPropias as $nota) {
+    echo "<div class='nota'>
+        <p><strong>{$nota['titulo']}</strong></p>
+        <p>{$nota['contenido']}</p>
+        <p><strong>Etiquetas:</strong> " . implode(', ', $nota['etiquetas']) . "</p>
+        <p><em>Creada: {$nota['fecha_creado']}</em></p>
+        <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
+        <form id='formBorrar{$nota['id_notes']}' method='POST'>
+            <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
+            <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
+        </form>
+        <button onclick='editarNota({$nota['id_notes']})'>Editar</button>
+    </div>";
+}
+
+echo "</div>";
+
 $notasCompartidas = [];
 $consultaCompartidas = "
 SELECT n.*, u.nombre AS autor
 FROM nota n
-JOIN compartir c ON n.id_notes = c.id_notes
+JOIN compartir c ON n.id_notes = c.id_note
 JOIN usuario u ON u.id_user = n.id_user
 WHERE c.id_user = $id_user AND n.id_user != $id_user
 ORDER BY n.fecha_creado DESC;
 ";
 
 $resCompartidas = pg_query($conexion, $consultaCompartidas);
-
 if ($resCompartidas) {
-    while ($fila = pg_fetch_assoc($resCompartidas)) {
-        $notasCompartidas[] = $fila;
-    }
-} else {
-    // Opcional: mostrar error para debug
-    error_log("Error en consulta de notas compartidas: " . pg_last_error($conexion));
-}
-
-// HTML
-echo "<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='UTF-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <title>Panel de notas - App de notas</title>
-    <style>
-        body { font-family: Arial; background: #f4f4f4; display: flex; flex-direction: column; align-items: center; padding-top: 30px; }
-        .box { background: white; padding: 20px 100px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 400px; margin-bottom: 20px; }
-        input, textarea { width: 100%; padding: 10px; margin: 8px 0; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .nota { background: #eef; padding: 10px; border-radius: 5px; margin-bottom: 10px; }
-    </style>
-</head>
-<body>
-    <h2>¡Hola!, $nombre</h2>
-
-    <div class='box'>
-        <h3>Crear Nueva Nota</h3>
-        <form method='POST'>
-            <input type='text' name='titulo' placeholder='Título de la nota' required>
-            <textarea name='nota' placeholder='Escribe tu nota aquí...' required></textarea>
-            <input type='text' name='etiquetas' placeholder='Etiquetas separadas por comas (opcional)'>
-            <button type='submit' name='guardar'>Guardar</button>
-        </form>
-    </div>
-
-    <div class='box'>
-        <h3>Mis Notas</h3>";
-if (!empty($error)) {
-    echo "<p style='color:red;'>$error</p>";
-} elseif (count($notasPropias) > 0) {
-    foreach ($notasPropias as $nota) {
-        echo "<div class='nota'>
-            <p>" . htmlspecialchars($nota['titulo']) . "</p>
-            <p>" . htmlspecialchars($nota['contenido']) . "</p>
-            <p><strong>Etiquetas:</strong> " . implode(", ", array_map('htmlspecialchars', $nota['etiquetas'])) . "</p>
-            <p><em>Creada: {$nota['fecha_creado']}</em></p>
-            <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
-            <form id='formBorrar{$nota['id_notes']}' method='POST'>
-                <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
-                <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
-            </form>
-            <button onclick='editarNota({$nota['id_notes']})'>Editar</button>
-        </div>";
-    }
-} else {
-    echo "<p>No tienes notas propias.</p>";
-}
-echo "</div>";
-
-echo "<div class='box'>
+    echo "<div class='box'>
     <h3>Notas Compartidas Conmigo</h3>";
-if (count($notasCompartidas) > 0) {
-    foreach ($notasCompartidas as $nota) {
+    while ($fila = pg_fetch_assoc($resCompartidas)) {
         echo "<div class='nota'>
-            <p>" . htmlspecialchars($nota['contenido']) . "</p>
-            <p><em>Autor: {$nota['autor']} | Creada: {$nota['fecha_creado']}</em></p>
+            <p>{$fila['contenido']}</p>
+            <p><em>Autor: {$fila['autor']} | Creada: {$fila['fecha_creado']}</em></p>
         </div>";
     }
-} else {
-    echo "<p>No hay notas compartidas contigo.</p>";
+    echo "</div>";
 }
-echo "</div>
 
-<!-- Modal Compartir -->
-<div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
-    background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
+echo "<div id='modalCompartir' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
     <h3>Compartir nota</h3>
     <form id='formCompartir'>
         <input type='hidden' name='id_note' id='id_note_modal'>
@@ -170,26 +142,24 @@ echo "</div>
         <button type='submit'>Compartir</button>
         <button type='button' onclick='cerrarModal()'>Cancelar</button>
     </form>
-    <div id='respuestaAjax' style='margin-top:10px;'></div>
+    <div id='respuestaAjax'></div>
 </div>
 
-<!-- Modal Editar -->
 <div id='modalEditar' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
-    background:#fff; padding:20px 50px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
+background:#fff; padding:20px 50px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
     <h3>Editar nota</h3>
     <form id='formEditar'>
         <input type='hidden' name='id_note' id='editar_id_note'>
-        <textarea name='contenido' id='editar_contenido' rows='5' style='width:100%;' required></textarea>
-        <br>
+        <textarea name='contenido' id='editar_contenido' rows='5' style='width:100%;' required></textarea><br>
         <button type='submit'>Guardar cambios</button>
         <button type='button' onclick='cerrarModalEditar()'>Cancelar</button>
     </form>
-    <div id='respuestaEditar' style='margin-top:10px;'></div>
-</div>
+    <div id='respuestaEditar'></div>
+</div>";
 
-<a href='logout.php'>Cerrar sesión</a>
+echo "<a href='logout.php'>Cerrar sesión</a>";
 
-<script>
+echo "<script>
 function abrirModal(idNota) {
     document.getElementById('id_note_modal').value = idNota;
     document.getElementById('modalCompartir').style.display = 'block';
