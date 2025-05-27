@@ -11,8 +11,8 @@ if (!isset($_SESSION["id_user"])) {
     die("Sesión no iniciada.");
 }
 
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_note"])) {
-    $idNota = intval($_POST["id_note"]);
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["id_notes"])) {
+    $idNota = intval($_POST["id_notes"]);
     $id_user = intval($_SESSION["id_user"]);
 
     // Seguridad: solo el dueño de la nota puede borrarla
