@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
         // Obtener ID de la nota recién insertada
         $res = pg_query($conexion, "SELECT currval(pg_get_serial_sequence('nota','id_notes')) AS id_notes");
         if ($res && ($row = pg_fetch_assoc($res))) {
-            $id_nota_nueva = $row['id_note'];
+            $id_nota_nueva = $row['id_notes'];
 
             // Insertar etiquetas
             foreach ($etiquetas as $etiqueta) {
