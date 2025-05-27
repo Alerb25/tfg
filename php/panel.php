@@ -30,7 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
                 $nombre_etiqueta = trim($etiqueta);
                 if ($nombre_etiqueta !== "") {
                     $nombre_etiqueta_esc = pg_escape_string($conexion, $nombre_etiqueta);
-                    pg_query($conexion, "INSERT INTO etiqueta (nombre, id_note) VALUES ('$nombre_etiqueta_esc', $id_nota_nueva)");
+                    pg_query($conexion, "INSERT INTO etiqueta (nombre, id_notes) VALUES ('$nombre_etiqueta_esc', $id_nota_nueva)");
                 }
             }
             header("Location: panel.php");
@@ -419,7 +419,7 @@ $notasPropias = [];
 
 while ($fila = pg_fetch_assoc($resPropias)) {
     $id_nota = $fila['id_notes'];
-    $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_note = $id_nota");
+    $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_notes = $id_nota");
     $etiquetas = [];
 
     if ($res_etiquetas) {
@@ -443,7 +443,7 @@ foreach ($notasPropias as $nota) {
         <p><em>Creada: {$nota['fecha_creado']}</em></p>
         <button onclick='abrirModal({$nota['id_notes']})'>Compartir</button>
         <form id='formBorrar{$nota['id_notes']}' method='POST'>
-            <input type='hidden' name='id_note' value='{$nota['id_notes']}'>
+            <input type='hidden' name='id_notes' value='{$nota['id_notes']}'>
             <button type='button' onclick='borrarNota({$nota['id_notes']})'>Borrar</button>
         </form>
         <button onclick='editarNota({$nota['id_notes']})'>Editar</button>
@@ -479,7 +479,7 @@ echo "<div id='modalCompartir' style='display:none; position:fixed; top:20%; lef
 background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
     <h3>Compartir nota</h3>
     <form id='formCompartir'>
-        <input type='hidden' name='id_note' id='id_note_modal'>
+        <input type='hidden' name='id_notes' id='id_notes_modal'>
         <input type='email' name='email_usuario' id='correo_destino' placeholder='Correo del usuario' required>
         <select name='permisos'>
             <option value='lectura'>Lectura</option>
@@ -495,7 +495,7 @@ background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-in
 background:#fff; padding:20px 50px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
     <h3>Editar nota</h3>
     <form id='formEditar'>
-        <input type='hidden' name='id_note' id='editar_id_note'>
+        <input type='hidden' name='id_notes' id='editar_id_notes'>
         <textarea name='contenido' id='editar_contenido' rows='5' style='width:100%;' required></textarea><br>
         <button type='submit'>Guardar cambios</button>
         <button type='button' onclick='cerrarModalEditar()'>Cancelar</button>
@@ -507,7 +507,7 @@ echo "<a href='logout.php'>Cerrar sesión</a>";
 
 echo "<script>
 function abrirModal(idNota) {
-    document.getElementById('id_note_modal').value = idNota;
+    document.getElementById('id_notes_modal').value = idNota;
     document.getElementById('modalCompartir').style.display = 'block';
 }
 function cerrarModal() {
@@ -526,11 +526,11 @@ function borrarNota(idNota) {
     }
 }
 function editarNota(idNota) {
-    fetch('/php/obtenerNota.php?id_note=' + idNota)
+    fetch('/php/obtenerNota.php?id_notes=' + idNota)
         .then(res => res.json())
         .then(data => {
             if (data && data.contenido !== undefined) {
-                document.getElementById('editar_id_note').value = idNota;
+                document.getElementById('editar_id_notes').value = idNota;
                 document.getElementById('editar_contenido').value = data.contenido;
                 document.getElementById('modalEditar').style.display = 'block';
             } else {
