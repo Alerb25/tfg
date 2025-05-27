@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["guardar"])) {
         // Obtener ID de la nota recién insertada
         $res = pg_query($conexion, "SELECT currval(pg_get_serial_sequence('nota','id_notes')) AS id_notes");
         if ($res && ($row = pg_fetch_assoc($res))) {
-            $id_nota_nueva = $row['id_notes'];
+            $id_nota_nueva = $row['id_note'];
 
             // Insertar etiquetas
             foreach ($etiquetas as $etiqueta) {
@@ -57,7 +57,7 @@ $resPropias = pg_query($conexion, $consultaPropias);
 $notasPropias = [];
 while ($fila = pg_fetch_assoc($resPropias)) {
     $id_nota = $fila['id_notes'];
-    $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_notes = $id_nota");
+    $res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_note = $id_nota");
     $etiquetas = [];
     if ($res_etiquetas) {
         while ($et = pg_fetch_assoc($res_etiquetas)) {
@@ -77,7 +77,7 @@ JOIN usuario u ON u.id_user = n.id_user
 WHERE c.id_user = $id_user AND n.id_user != $id_user
 ORDER BY n.fecha_creado DESC;
 ";
-$resCompartidas = pg_query($conexion, $consultaCompartidas);
+$res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_note = $id_nota");
 $notasCompartidas = [];
 while ($fila = pg_fetch_assoc($resCompartidas)) {
     $notasCompartidas[] = $fila;
