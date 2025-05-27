@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 
     // Buscar usuario de destino
-    $consultaUsuario = pg_query_params($conexion, "SELECT id_user FROM usuario WHERE correo = $1", [$correo_destino]);
+    $consultaUsuario = pg_query_params($conexion, "SELECT id_user FROM usuario WHERE mail = $1", [$correo_destino]);
     if (pg_num_rows($consultaUsuario) === 0) {
         die("El usuario con ese correo no existe.");
     }
