@@ -73,7 +73,7 @@ $notasCompartidas = [];
 $consultaCompartidas = "
 SELECT n.*, u.nombre AS autor
 FROM nota n
-JOIN compartir c ON n.id_note = c.id_note
+JOIN compartir c ON n.id_notes = c.id_note
 JOIN usuario u ON u.id_user = n.id_user
 WHERE c.id_user = $id_user AND n.id_user != $id_user
 ORDER BY n.fecha_creado DESC;
