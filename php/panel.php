@@ -69,18 +69,25 @@ while ($fila = pg_fetch_assoc($resPropias)) {
 }
 
 // Notas compartidas contigo
+$notasCompartidas = [];
 $consultaCompartidas = "
 SELECT n.*, u.nombre AS autor
 FROM nota n
-JOIN compartir c ON n.id_notes = c.id_notes
+JOIN compartir c ON n.id_note = c.id_note
 JOIN usuario u ON u.id_user = n.id_user
 WHERE c.id_user = $id_user AND n.id_user != $id_user
 ORDER BY n.fecha_creado DESC;
 ";
-$res_etiquetas = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_note = $id_nota");
-$notasCompartidas = [];
-while ($fila = pg_fetch_assoc($resCompartidas)) {
-    $notasCompartidas[] = $fila;
+
+$resCompartidas = pg_query($conexion, $consultaCompartidas);
+
+if ($resCompartidas) {
+    while ($fila = pg_fetch_assoc($resCompartidas)) {
+        $notasCompartidas[] = $fila;
+    }
+} else {
+    // Opcional: mostrar error para debug
+    error_log("Error en consulta de notas compartidas: " . pg_last_error($conexion));
 }
 
 // HTML
