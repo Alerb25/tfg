@@ -46,13 +46,359 @@ echo "<!DOCTYPE html>
 <head>
     <meta charset='UTF-8'>
     <title>Panel de Notas</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
-        .nota { background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 10px; }
-        textarea { width: 100%; height: 100px; }
-        button { margin-right: 5px; }
-    </style>
+<style>
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background-color: #fafafa;
+        color: #2c3e50;
+        line-height: 1.6;
+        padding: 20px;
+        font-size: 15px;
+    }
+    
+    /* Contenedor principal */
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    /* Título principal */
+    h2 {
+        color: #2c3e50;
+        font-size: 2rem;
+        font-weight: 400;
+        margin-bottom: 2rem;
+        letter-spacing: -0.5px;
+    }
+    
+    /* Contenedores principales */
+    .box {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e9ecef;
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .box:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Títulos de sección */
+    h3 {
+        color: #2c3e50;
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f8f9fa;
+    }
+    
+    /* Formularios */
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    input[type='text'], 
+    input[type='email'], 
+    textarea, 
+    select {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.875rem 1rem;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        outline: none;
+        font-family: inherit;
+    }
+    
+    input[type='text']:focus, 
+    input[type='email']:focus, 
+    textarea:focus, 
+    select:focus {
+        background: white;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+        line-height: 1.5;
+    }
+    
+    /* Botones */
+    button {
+        background: #3498db;
+        border: none;
+        border-radius: 6px;
+        padding: 0.7rem 1.2rem;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-family: inherit;
+    }
+    
+    button:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+    }
+    
+    button:active {
+        transform: translateY(0);
+    }
+    
+    /* Botones específicos */
+    button[onclick*='borrar'] {
+        background: #e74c3c;
+    }
+    
+    button[onclick*='borrar']:hover {
+        background: #c0392b;
+    }
+    
+    button[onclick*='editar'] {
+        background: #f39c12;
+    }
+    
+    button[onclick*='editar']:hover {
+        background: #e67e22;
+    }
+    
+    button[onclick*='compartir'] {
+        background: #27ae60;
+    }
+    
+    button[onclick*='compartir']:hover {
+        background: #229954;
+    }
+    
+    /* Botones secundarios */
+    button[type='button'] {
+        background: #95a5a6;
+    }
+    
+    button[type='button']:hover {
+        background: #7f8c8d;
+    }
+    
+    /* Notas individuales */
+    .nota {
+        background: #fdfdfd;
+        border: 1px solid #f1f3f4;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    
+    .nota:hover {
+        border-color: #e9ecef;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    
+    .nota p {
+        margin-bottom: 0.75rem;
+    }
+    
+    .nota p:first-child {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+    
+    .nota p:last-child {
+        margin-bottom: 1rem;
+    }
+    
+    .nota em {
+        color: #7f8c8d;
+        font-size: 13px;
+    }
+    
+    /* Etiquetas */
+    .nota p:contains('Etiquetas') {
+        font-size: 14px;
+        color: #5d6d7e;
+    }
+    
+    /* Modales */
+    #modalCompartir, #modalEditar {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e9ecef;
+        min-width: 400px;
+        z-index: 1000;
+    }
+    
+    /* Formularios en modales */
+    #modalCompartir form, #modalEditar form {
+        gap: 1.2rem;
+    }
+    
+    #modalCompartir h3, #modalEditar h3 {
+        margin-bottom: 1.5rem;
+        border-bottom: none;
+        font-size: 1.2rem;
+    }
+    
+    /* Botones en modales */
+    #modalCompartir button, #modalEditar button {
+        margin-right: 0.75rem;
+    }
+    
+    /* Enlaces */
+    a {
+        display: inline-block;
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.7rem 1.2rem;
+        background: #f8f9fa;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+        margin-top: 1rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    a:hover {
+        background: #e9ecef;
+        color: #2980b9;
+    }
+    
+    /* Mensajes de respuesta */
+    #respuestaAjax, #respuestaEditar {
+        margin-top: 1rem;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    /* Estados de carga */
+    .loading {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        body {
+            padding: 15px;
+            font-size: 14px;
+        }
+        
+        .box {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nota {
+            padding: 1.25rem;
+        }
+        
+        #modalCompartir, #modalEditar {
+            min-width: 90vw;
+            left: 5vw;
+            transform: translateX(0);
+            padding: 1.5rem;
+        }
+        
+        button {
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 0.75rem;
+        }
+        
+        .nota button {
+            width: auto;
+            display: inline-block;
+        }
+    }
+    
+    /* Mejoras para accesibilidad */
+    button:focus {
+        outline: 2px solid #3498db;
+        outline-offset: 2px;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+        outline: none;
+    }
+    
+    /* Scrollbar sutil */
+    ::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f8f9fa;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #dee2e6;
+        border-radius: 3px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #ced4da;
+    }
+    
+    /* Estados vacíos */
+    .empty-state {
+        text-align: center;
+        color: #7f8c8d;
+        font-style: italic;
+        padding: 2rem;
+    }
+    
+    /* Separadores sutiles */
+    .divider {
+        height: 1px;
+        background: #f1f3f4;
+        margin: 1.5rem 0;
+    }
+    
+    /* Animación suave para elementos que aparecen */
+    .fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 </head>
 <body>";
 
