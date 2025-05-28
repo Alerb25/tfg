@@ -1,11 +1,14 @@
 # tfg
 
-En este repositorio guardo todos los archivos del tfg en el cual estarán desde el index hasta la base de datos. 
+## Descripción
+El proyecto tiene como objetivo crear un sistema de gestión de notas, que permita a los usuarios crear, editar y eliminar notas, así como compartir notas con otros usuarios. Además, tiene un sistema de etiquetas para categorizar las notas.
 
-En este Read me se dejará por escrito lo que hay hecho hasta ahora y lo que hace falta revisar:
-  Login -- Hace falta ver si funciona. de momento solo ha dado err de bdd pero ya no deberia ser un problema
-  Panel -- Donde van a estar todas las notas del usuario, solo queda revisar cómo hacer las notas compartidas
-  Logout -- Redirecciona a Login pero cierra la sesion que esté abierta.
-  comp -- pruebas para ver como hacer una nota compartida por varios usuarios  a la vez. 
-  borrar -- Para que se puedan borrar las notas.
-  --HE ELIMINADO EL PG_DUMP no completo
+## Tecnologías
+- HTML
+- CSS
+- JavaScript
+- PHP
+- PostgreSQL
+
+## Autor
+- Alejandra Ruiz Bermúdez https://github.com/Alerb25
