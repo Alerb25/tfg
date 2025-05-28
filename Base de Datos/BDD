@@ -27,10 +27,3 @@ alter table compartir add constraint fk_user foreign key (id_User) References us
 --Etiqueta
 create table etiqueta (id_Tag SERIAL, nombre varchar(30), id_notes INTEGER REFERENCES nota(id_notes) ON DELETE CASCADE);
 alter table etiqueta add primary key (id_Tag);
-  
-
---Tiene 
-create or replace view tiene 
-as select id_Notes From nota
-Union
-select  id_Tag From etiqueta;
