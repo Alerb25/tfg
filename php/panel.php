@@ -46,7 +46,7 @@ echo "<!DOCTYPE html>
 <head>
     <meta charset='UTF-8'>
     <title>Panel de Notas</title>
-<style>
+    <style>
     
     * {
         margin: 0;
@@ -153,6 +153,9 @@ echo "<!DOCTYPE html>
         margin-right: 0.5rem;
         margin-bottom: 0.5rem;
         font-family: inherit;
+        display: inline-block;
+        text-align: center;
+        min-width: 80px;
     }
     
     button:hover {
@@ -164,9 +167,12 @@ echo "<!DOCTYPE html>
         transform: translateY(0);
     }
     
-    /* Botones específicos */
+    /* Botones específicos con tamaños uniformes */
     button[onclick*='borrar'] {
         background: #e74c3c;
+        padding: 0.7rem 1.2rem;
+        font-size: 14px;
+        min-width: 80px;
     }
     
     button[onclick*='borrar']:hover {
@@ -175,6 +181,9 @@ echo "<!DOCTYPE html>
     
     button[onclick*='editar'] {
         background: #f39c12;
+        padding: 0.7rem 1.2rem;
+        font-size: 14px;
+        min-width: 80px;
     }
     
     button[onclick*='editar']:hover {
@@ -183,6 +192,9 @@ echo "<!DOCTYPE html>
     
     button[onclick*='compartir'] {
         background: #27ae60;
+        padding: 0.7rem 1.2rem;
+        font-size: 14px;
+        min-width: 80px;
     }
     
     button[onclick*='compartir']:hover {
@@ -232,6 +244,12 @@ echo "<!DOCTYPE html>
     .nota em {
         color: #7f8c8d;
         font-size: 13px;
+    }
+    
+    /* Botones dentro de las notas */
+    .nota button {
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
     }
     
     /* Etiquetas */
@@ -332,11 +350,13 @@ echo "<!DOCTYPE html>
             width: 100%;
             margin-right: 0;
             margin-bottom: 0.75rem;
+            min-width: auto;
         }
         
         .nota button {
             width: auto;
             display: inline-block;
+            min-width: 80px;
         }
     }
     
