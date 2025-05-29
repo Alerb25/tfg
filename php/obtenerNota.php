@@ -26,8 +26,18 @@ if (!isset($_GET['id_notes']) || !is_numeric($_GET['id_notes'])) {
 $id_notes = intval($_GET['id_notes']);
 $id_user = intval($_SESSION["id_user"]);
 
-// Consultar la nota, verificando que pertenezca al usuario logueado
-$consulta = "SELECT id_notes, contenido, titulo FROM nota WHERE id_notes = $1 AND id_user = $2";
+// Verificar si es propietario o tiene permisos (incluyendo notas compartidas)
+$consulta = "
+    SELECT n.id_notes, n.contenido, n.titulo, 'propietario' as tipo_acceso
+    FROM nota n 
+    WHERE n.id_notes = $1 AND n.id_user = $2
+    UNION
+    SELECT n.id_notes, n.contenido, n.titulo, c.permisos as tipo_acceso
+    FROM nota n
+    JOIN compartir c ON n.id_notes = c.id_notes
+    WHERE n.id_notes = $1 AND c.id_user = $2
+";
+
 $resultado = pg_query_params($conexion, $consulta, [$id_notes, $id_user]);
 
 if (!$resultado) {
@@ -40,18 +50,30 @@ $nota = pg_fetch_assoc($resultado);
 
 if (!$nota) {
     http_response_code(404);
-    echo json_encode(['error' => 'Nota no encontrada']);
+    echo json_encode(['error' => 'Nota no encontrada o sin permisos']);
     exit();
+}
+
+// Obtener etiquetas
+$res_etiquetas = pg_query_params($conexion, "SELECT nombre FROM etiqueta WHERE id_notes = $1", [$id_notes]);
+$etiquetas = [];
+
+if ($res_etiquetas) {
+    while ($et = pg_fetch_assoc($res_etiquetas)) {
+        $etiquetas[] = $et['nombre'];
+    }
 }
 
 // Establecer el header para JSON
 header('Content-Type: application/json');
 
-// Devolver la nota en formato JSON
+// Devolver la nota en formato JSON incluyendo las etiquetas
 echo json_encode([
     'id_notes' => $nota['id_notes'],
     'contenido' => $nota['contenido'],
-    'titulo' => $nota['titulo']
+    'titulo' => $nota['titulo'],
+    'etiquetas' => $etiquetas,
+    'tipo_acceso' => $nota['tipo_acceso']
 ]);
 
 pg_close($conexion);
