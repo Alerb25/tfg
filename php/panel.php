@@ -526,10 +526,10 @@ function borrarNota(idNota) {
     }
 }
 function editarNota(idNota) {
-    fetch('/php/obtenerNota.php?id_notes=' + idNota)
+    fetch('php/obtenerNota.php?id_notes=' + idNota)  // <-- aquí la corrección
         .then(res => res.json())
         .then(data => {
-            console.log('Respuesta del servidor:', data); // <-- Mira qué llega
+            console.log('Respuesta del servidor:', data);
             if (data && data.contenido !== undefined) {
                 document.getElementById('editar_id_notes').value = idNota;
                 document.getElementById('editar_contenido').value = data.contenido;
@@ -576,6 +576,7 @@ document.getElementById('formCompartir').addEventListener('submit', function(e) 
     });
 });
 </script>
+
 </body>
 </html>";
 ?>
