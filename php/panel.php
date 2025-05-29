@@ -507,72 +507,131 @@ echo "<a href='logout.php'>Cerrar sesión</a>";
 
 echo "<script>
 function abrirModal(idNota) {
+    console.log('Abriendo modal para nota ID:', idNota); // Debug
     document.getElementById('id_notes_modal').value = idNota;
     document.getElementById('modalCompartir').style.display = 'block';
 }
+
 function cerrarModal() {
     document.getElementById('modalCompartir').style.display = 'none';
     document.getElementById('respuestaAjax').innerText = '';
 }
+
 function borrarNota(idNota) {
+    console.log('Intentando borrar nota ID:', idNota); // Debug
+    
     if (confirm('¿Estás seguro de que quieres borrar esta nota?')) {
-        const form = document.getElementById('formBorrar' + idNota);
-        const formData = new FormData(form);
+        // Crear FormData manualmente para asegurar que el ID se envíe
+        const formData = new FormData();
+        formData.append('id_notes', idNota);
+        
         fetch('borrarNota.php', {
             method: 'POST',
             body: formData
-        }).then(() => location.reload())
-          .catch(() => alert('Error al borrar la nota.'));
+        })
+        .then(response => {
+            console.log('Respuesta del servidor:', response); // Debug
+            if (response.ok) {
+                location.reload();
+            } else {
+                throw new Error('Error en la respuesta del servidor');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error); // Debug
+            alert('Error al borrar la nota.');
+        });
     }
 }
+
 function editarNota(idNota) {
-    fetch('/php/obtenerNota.php?id_notes=' + idNota)  // <-- aquí la corrección
-        .then(res => res.json())
+    console.log('Editando nota ID:', idNota); // Debug
+    
+    // Corregir la ruta - quitar '/php/'
+    fetch('obtenerNota.php?id_notes=' + idNota)
+        .then(response => {
+            console.log('Status de respuesta:', response.status); // Debug
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
         .then(data => {
-            console.log('Respuesta del servidor:', data);
+            console.log('Datos recibidos:', data); // Debug
+            
             if (data && data.contenido !== undefined) {
                 document.getElementById('editar_id_notes').value = idNota;
                 document.getElementById('editar_contenido').value = data.contenido;
                 document.getElementById('modalEditar').style.display = 'block';
+            } else if (data.error) {
+                alert('Error: ' + data.error);
             } else {
                 alert('No se pudo cargar el contenido.');
             }
         })
-        .catch(() => alert('Error al cargar la nota.'));
+        .catch(error => {
+            console.error('Error al cargar nota:', error); // Debug
+            alert('Error al cargar la nota: ' + error.message);
+        });
 }
+
 function cerrarModalEditar() {
     document.getElementById('modalEditar').style.display = 'none';
     document.getElementById('respuestaEditar').innerText = '';
 }
+
+// Event listeners
 document.getElementById('formEditar').addEventListener('submit', function(e) {
     e.preventDefault();
+    console.log('Enviando formulario de edición'); // Debug
+    
     const formData = new FormData(this);
+    
+    // Debug: mostrar datos que se envían
+    console.log('ID nota a editar:', formData.get('id_notes'));
+    console.log('Nuevo contenido:', formData.get('contenido'));
+    
     fetch('actualizarNota.php', {
         method: 'POST',
         body: formData
     })
-    .then(res => res.text())
+    .then(response => {
+        console.log('Status actualización:', response.status); // Debug
+        return response.text();
+    })
     .then(data => {
+        console.log('Respuesta actualización:', data); // Debug
         document.getElementById('respuestaEditar').innerText = data;
         setTimeout(() => location.reload(), 1000);
     })
-    .catch(() => {
-        document.getElementById('respuestaEditar').innerText = 'Error al editar.';
+    .catch(error => {
+        console.error('Error al editar:', error); // Debug
+        document.getElementById('respuestaEditar').innerText = 'Error al editar: ' + error.message;
     });
 });
+
 document.getElementById('formCompartir').addEventListener('submit', function(e) {
     e.preventDefault();
+    console.log('Enviando formulario de compartir'); // Debug
+    
     const formData = new FormData(this);
+    
+    // Debug: mostrar datos que se envían
+    console.log('ID nota a compartir:', formData.get('id_notes'));
+    console.log('Email destinatario:', formData.get('email_usuario'));
+    
     fetch('compartir.php', {
         method: 'POST',
         body: formData
     })
-    .then(res => res.text())
+    .then(response => response.text())
     .then(data => {
+        console.log('Respuesta compartir:', data); // Debug
         document.getElementById('respuestaAjax').innerText = data;
     })
-    .catch(() => {
-        document.getElementById('respuestaAjax').innerText = 'Error al compartir.';
+    .catch(error => {
+        console.error('Error al compartir:', error); // Debug
+        document.getElementById('respuestaAjax').innerText = 'Error al compartir: ' + error.message;
     });
 });
 </script>

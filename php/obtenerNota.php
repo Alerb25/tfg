@@ -1,46 +1,58 @@
 <?php
 session_start();
-header('Content-Type: application/json');
 
+// Verificar que el usuario esté logueado
 if (!isset($_SESSION["id_user"])) {
-    echo json_encode(["error" => "No autorizado"]);
+    http_response_code(401);
+    echo json_encode(['error' => 'No autorizado']);
     exit();
 }
 
-if (!isset($_GET['id_note'])) {
-    echo json_encode(["error" => "ID de nota no proporcionado"]);
-    exit();
-    
-}
-
-$id_note = intval($_GET['id_note']);
-$id_user = intval($_SESSION["id_user"]);
-
+// Conexión a la base de datos
 $conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
-    echo json_encode(["error" => "Error de conexión a la base de datos"]);
+    http_response_code(500);
+    echo json_encode(['error' => 'Error de conexión a la base de datos']);
     exit();
 }
 
-// Verificar que el usuario tiene acceso a esa nota (propietario o compartida)
-$query = "
-SELECT contenido FROM nota n
-LEFT JOIN compartir c ON n.id_notes = c.id_notes
-WHERE n.id_notes = $id_note AND (n.id_user = $id_user OR c.id_user = $id_user)
-LIMIT 1
-";
-
-$result = pg_query($conexion, $query);
-
-if (!$result || pg_num_rows($result) === 0) {
-    echo json_encode(["error" => "Nota no encontrada o acceso denegado"]);
+// Verificar que se recibió el ID de la nota
+if (!isset($_GET['id_notes']) || !is_numeric($_GET['id_notes'])) {
+    http_response_code(400);
+    echo json_encode(['error' => 'ID de nota inválido']);
     exit();
 }
 
-$nota = pg_fetch_assoc($result);
+$id_notes = intval($_GET['id_notes']);
+$id_user = intval($_SESSION["id_user"]);
 
+// Consultar la nota, verificando que pertenezca al usuario logueado
+$consulta = "SELECT id_notes, contenido, titulo FROM nota WHERE id_notes = $1 AND id_user = $2";
+$resultado = pg_query_params($conexion, $consulta, [$id_notes, $id_user]);
+
+if (!$resultado) {
+    http_response_code(500);
+    echo json_encode(['error' => 'Error en la consulta']);
+    exit();
+}
+
+$nota = pg_fetch_assoc($resultado);
+
+if (!$nota) {
+    http_response_code(404);
+    echo json_encode(['error' => 'Nota no encontrada']);
+    exit();
+}
+
+// Establecer el header para JSON
+header('Content-Type: application/json');
+
+// Devolver la nota en formato JSON
 echo json_encode([
-    "id_note" => $id_note,
-    "contenido" => $nota['contenido']
+    'id_notes' => $nota['id_notes'],
+    'contenido' => $nota['contenido'],
+    'titulo' => $nota['titulo']
 ]);
+
+pg_close($conexion);
 ?>
