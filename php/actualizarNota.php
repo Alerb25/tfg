@@ -15,7 +15,7 @@ if (!isset($_SESSION["id_user"])) {
 }
 
 $id_user = intval($_SESSION["id_user"]);
-$id_note = intval($_POST["id_notes"]);
+$id_notes = intval($_POST["id_notes"]);
 $nuevoContenido = pg_escape_string($conexion, $_POST["contenido"]);
 $fecha = date("Y-m-d");
 
