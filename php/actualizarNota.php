@@ -15,13 +15,13 @@ if (!isset($_SESSION["id_user"])) {
 }
 
 $id_user = intval($_SESSION["id_user"]);
-$id_note = intval($_POST["id_note"]);
+$id_note = intval($_POST["id_notes"]);
 $nuevoContenido = pg_escape_string($conexion, $_POST["contenido"]);
 $fecha = date("Y-m-d");
 
 $update = pg_query($conexion, "
     UPDATE nota SET contenido = '$nuevoContenido', fecha_editado = '$fecha'
-    WHERE id_notes = $id_note AND (
+    WHERE id_notes = $id_notes AND (
         id_user = $id_user OR EXISTS (
             SELECT 1 FROM compartir 
             WHERE id_notes = nota.id_notes AND id_user = $id_user AND permisos = 'edicion'
