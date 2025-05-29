@@ -46,7 +46,7 @@ echo "<!DOCTYPE html>
 <head>
     <meta charset='UTF-8'>
     <title>Panel de Notas</title>
-    <style>
+<style>
     
     * {
         margin: 0;
@@ -474,7 +474,7 @@ echo "</div>";
 
 $notasCompartidas = [];
 $consultaCompartidas = "
-SELECT n.*, u.nombre AS autor
+SELECT n.*, u.nombre AS autor, c.permisos
 FROM nota n
 JOIN compartir c ON n.id_notes = c.id_notes
 JOIN usuario u ON u.id_user = n.id_user
@@ -486,11 +486,31 @@ $resCompartidas = pg_query($conexion, $consultaCompartidas);
 if ($resCompartidas) {
     echo "<div class='box'>
     <h3>Notas Compartidas Conmigo</h3>";
+    
     while ($fila = pg_fetch_assoc($resCompartidas)) {
+        // Obtener etiquetas para esta nota compartida
+        $id_nota_compartida = $fila['id_notes'];
+        $res_etiquetas_compartida = pg_query($conexion, "SELECT nombre FROM etiqueta WHERE id_notes = $id_nota_compartida");
+        $etiquetas_compartida = [];
+        
+        if ($res_etiquetas_compartida) {
+            while ($et = pg_fetch_assoc($res_etiquetas_compartida)) {
+                $etiquetas_compartida[] = $et['nombre'];
+            }
+        }
+        
         echo "<div class='nota'>
+            <p><strong>{$fila['titulo']}</strong></p>
             <p>{$fila['contenido']}</p>
-            <p><em>Autor: {$fila['autor']} | Creada: {$fila['fecha_creado']}</em></p>
-        </div>";
+            <p><strong>Etiquetas:</strong> " . implode(', ', $etiquetas_compartida) . "</p>
+            <p><em>Autor: {$fila['autor']} | Creada: {$fila['fecha_creado']} | Permisos: {$fila['permisos']}</em></p>";
+            
+        // Mostrar botón de editar solo si tiene permisos de edición
+        if ($fila['permisos'] === 'edicion') {
+            echo "<button onclick='editarNotaCompartida({$fila['id_notes']})'>Editar</button>";
+        }
+        
+        echo "</div>";
     }
     echo "</div>";
 }
@@ -509,6 +529,20 @@ background:#fff; padding:20px; border-radius:8px; box-shadow:0 0 10px #999; z-in
         <button type='button' onclick='cerrarModal()'>Cancelar</button>
     </form>
     <div id='respuestaAjax'></div>
+</div>
+
+<div id='modalEditarCompartida' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
+background:#fff; padding:20px 50px; border-radius:8px; box-shadow:0 0 10px #999; z-index:1000;'>
+    <h3>Editar nota compartida</h3>
+    <form id='formEditarCompartida'>
+        <input type='hidden' name='id_notes' id='editar_compartida_id_notes'>
+        <input type='text' name='titulo' id='editar_compartida_titulo' placeholder='Título' required><br><br>
+        <textarea name='contenido' id='editar_compartida_contenido' rows='5' style='width:100%;' required></textarea><br>
+        <input type='text' name='etiquetas' id='editar_compartida_etiquetas' placeholder='Etiquetas separadas por comas'><br><br>
+        <button type='submit'>Guardar cambios</button>
+        <button type='button' onclick='cerrarModalEditarCompartida()'>Cancelar</button>
+    </form>
+    <div id='respuestaEditarCompartida'></div>
 </div>
 
 <div id='modalEditar' style='display:none; position:fixed; top:20%; left:50%; transform:translateX(-50%);
@@ -652,6 +686,73 @@ document.getElementById('formCompartir').addEventListener('submit', function(e) 
     .catch(error => {
         console.error('Error al compartir:', error); // Debug
         document.getElementById('respuestaAjax').innerText = 'Error al compartir: ' + error.message;
+    });
+});
+
+function editarNotaCompartida(idNota) {
+    console.log('Editando nota compartida ID:', idNota);
+    
+    fetch('obtenerNota.php?id_notes=' + idNota)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos recibidos para nota compartida:', data);
+            
+            if (data && data.contenido !== undefined) {
+                document.getElementById('editar_compartida_id_notes').value = idNota;
+                document.getElementById('editar_compartida_titulo').value = data.titulo || '';
+                document.getElementById('editar_compartida_contenido').value = data.contenido;
+                
+                // Cargar etiquetas
+                if (data.etiquetas && Array.isArray(data.etiquetas)) {
+                    document.getElementById('editar_compartida_etiquetas').value = data.etiquetas.join(', ');
+                }
+                
+                document.getElementById('modalEditarCompartida').style.display = 'block';
+            } else if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('No se pudo cargar el contenido.');
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar nota compartida:', error);
+            alert('Error al cargar la nota: ' + error.message);
+        });
+}
+
+function cerrarModalEditarCompartida() {
+    document.getElementById('modalEditarCompartida').style.display = 'none';
+    document.getElementById('respuestaEditarCompartida').innerText = '';
+}
+
+// Event listener para el formulario de editar nota compartida
+document.getElementById('formEditarCompartida').addEventListener('submit', function(e) {
+    e.preventDefault();
+    console.log('Enviando formulario de edición de nota compartida');
+    
+    const formData = new FormData(this);
+    
+    fetch('actualizarNotaCompartida.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        console.log('Status actualización nota compartida:', response.status);
+        return response.text();
+    })
+    .then(data => {
+        console.log('Respuesta actualización nota compartida:', data);
+        document.getElementById('respuestaEditarCompartida').innerText = data;
+        setTimeout(() => location.reload(), 1000);
+    })
+    .catch(error => {
+        console.error('Error al editar nota compartida:', error);
+        document.getElementById('respuestaEditarCompartida').innerText = 'Error al editar: ' + error.message;
     });
 });
 </script>
