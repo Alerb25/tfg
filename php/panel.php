@@ -526,7 +526,7 @@ function borrarNota(idNota) {
     }
 }
 function editarNota(idNota) {
-    fetch('php/obtenerNota.php?id_notes=' + idNota)  // <-- aquí la corrección
+    fetch('/php/obtenerNota.php?id_notes=' + idNota)  // <-- aquí la corrección
         .then(res => res.json())
         .then(data => {
             console.log('Respuesta del servidor:', data);
