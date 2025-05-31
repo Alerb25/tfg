@@ -1,11 +1,13 @@
-#Utiliza php con apache
+# Usa PHP con Apache
 FROM php:7.4-apache
 
-#Copia el contenido del directorio actual al directorio raíz del contenedor
-COPY /php /var/www/html/
+# Instala dependencias necesarias del sistema para PostgreSQL
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    && docker-php-ext-install pdo pdo_pgsql
 
-# Instala extensiones necesarias de PHP
-RUN docker-php-ext-install pdo pdo_pgsql
+# Copia el código PHP al contenedor
+COPY /php /var/www/html/
 
 # Da permisos adecuados
 RUN chown -R www-data:www-data /var/www/html
