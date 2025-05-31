@@ -2,7 +2,7 @@
 FROM php:7.4-apache
 
 #Copia el contenido del directorio actual al directorio raíz del contenedor
-COPY . /var/www/html/
+COPY /php /var/www/html/
 
 #Ejecuta el comando de instalación de dependencias
 RUN apt-get update && apt-get install -y \
@@ -20,5 +20,10 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-#Instalar postgresql
-RUN apt install -y postgresql postgresql-contrib
+# Da permisos adecuados
+RUN chown -R www-data:www-data /var/www/html
+
+# Activa módulos de Apache
+RUN a2enmod rewrite
+
+EXPOSE 80
