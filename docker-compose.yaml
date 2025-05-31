@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: apache_php
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    volumes:
+      - ./php:/var/www/html
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: proyecto
+      POSTGRES_PASSWORD: proyecto
+      POSTGRES_DB: proyecto
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+    driver: bridge
