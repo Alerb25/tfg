@@ -601,7 +601,6 @@ function borrarNota(idNota) {
 function editarNota(idNota) {
     console.log('Editando nota ID:', idNota); // Debug
     
-    // Corregir la ruta - quitar '/php/'
     fetch('obtenerNota.php?id_notes=' + idNota)
         .then(response => {
             console.log('Status de respuesta:', response.status); // Debug
