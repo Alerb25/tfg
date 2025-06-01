@@ -13,7 +13,7 @@ services:
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./Base de Datos/BDD:/docker-entrypoint-initdb.d:ro
+      - ./Base de Datos/BDD.sql:/docker-entrypoint-initdb.d:ro
     ports:
       - "5433:5432"
     networks:
