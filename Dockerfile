@@ -16,6 +16,7 @@ RUN a2enmod rewrite \
     && a2enmod headers \
     && a2enmod ssl
 
+
 # Configurar PHP
 RUN echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 10M" >> /usr/local/etc/php/conf.d/uploads.ini
@@ -26,7 +27,14 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 # Configurar DirectoryIndex para que busque index.php primero
-RUN echo "DirectoryIndex index.php index.html" >> /etc/apache2/apache2.conf
+RUN echo "DirectoryIndex login.php " >> /etc/apache2/apache2.conf
+# Configurar directorio
+RUN echo '<Directory /var/www/html/>' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    Options Indexes FollowSymLinks' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    AllowOverride All' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    Require all granted' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '</Directory>' >> /etc/apache2/sites-available/000-default.conf
+
 
 # Crear directorio de trabajo
 WORKDIR /var/www/html
