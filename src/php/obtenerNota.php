@@ -9,7 +9,7 @@ if (!isset($_SESSION["id_user"])) {
 }
 
 // Conexión a la base de datos
-$conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
+$conexion = pg_connect("host=db  port=5432 dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
     http_response_code(500);
     echo json_encode(['error' => 'Error de conexión a la base de datos']);

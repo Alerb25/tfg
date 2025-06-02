@@ -8,7 +8,7 @@ if (!isset($_SESSION["id_user"])) {
 $id_usuario_origen = intval($_SESSION["id_user"]);
 
 // Conectar a la base de datos
-$conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
+$conexion = pg_connect("host=db  port=5432 dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
     die("Error de conexión con la base de datos.");
 }
