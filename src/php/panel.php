@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$conexion = pg_connect("host=127.0.0.1 port=5433 dbname=proyecto user=proyecto password=proyecto");
+$conexion = pg_connect("host=127.0.0.1 port=5432 dbname=proyecto user=proyecto password=proyecto");
 if (!$conexion) {
     die("Error al conectar con la base de datos.");
 }
