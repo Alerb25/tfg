@@ -13,45 +13,47 @@ RUN apt-get update && apt-get install -y \
 
 # Habilitar módulos de Apache necesarios
 RUN a2enmod rewrite \
-    && a2enmod headers \
-    && a2enmod ssl
-
+    && a2enmod headers
 
 # Configurar PHP
 RUN echo "upload_max_filesize = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "post_max_size = 10M" >> /usr/local/etc/php/conf.d/uploads.ini
+    && echo "post_max_size = 10M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 
-# Configurar Apache para el proyecto
+# Configurar Apache
 ENV APACHE_DOCUMENT_ROOT /var/www/html
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Configurar DirectoryIndex para que busque index.php primero
-RUN echo "DirectoryIndex login.php " >> /etc/apache2/apache2.conf
-# Configurar directorio
-RUN echo '<Directory /var/www/html/>' >> /etc/apache2/sites-available/000-default.conf && \
-    echo '    Options Indexes FollowSymLinks' >> /etc/apache2/sites-available/000-default.conf && \
-    echo '    AllowOverride All' >> /etc/apache2/sites-available/000-default.conf && \
-    echo '    Require all granted' >> /etc/apache2/sites-available/000-default.conf && \
-    echo '</Directory>' >> /etc/apache2/sites-available/000-default.conf
-
+# Crear configuración personalizada de Apache
+RUN echo '<VirtualHost *:80>' > /etc/apache2/sites-available/000-default.conf && \
+    echo '    ServerAdmin webmaster@localhost' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    DocumentRoot /var/www/html' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    DirectoryIndex login.php '  >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    <Directory /var/www/html>' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        Options Indexes FollowSymLinks' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        AllowOverride All' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '        Require all granted' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    </Directory>' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    ErrorLog ${APACHE_LOG_DIR}/error.log' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '    CustomLog ${APACHE_LOG_DIR}/access.log combined' >> /etc/apache2/sites-available/000-default.conf && \
+    echo '</VirtualHost>' >> /etc/apache2/sites-available/000-default.conf
 
 # Crear directorio de trabajo
 WORKDIR /var/www/html
 
-# Copiar archivos del proyecto (excluir algunos archivos innecesarios)
-COPY --chown=www-data:www-data . /var/www/html/
-
-# Establecer permisos adecuados
-RUN find /var/www/html -type d -exec chmod 755 {} \; \
-    && find /var/www/html -type f -exec chmod 644 {} \; \
-    && chmod +x /var/www/html/*.php
-
-# Crear directorio para logs si no existe
-RUN mkdir -p /var/www/html/logs && chown www-data:www-data /var/www/html/logs
+# Establecer permisos por defecto
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
 
 # Exponer puerto 80
 EXPOSE 80
 
+# Script de inicio para ajustar permisos dinámicamente
+RUN echo '#!/bin/bash' > /usr/local/bin/docker-entrypoint.sh && \
+    echo 'chown -R www-data:www-data /var/www/html' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo 'find /var/www/html -type d -exec chmod 755 {} \;' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo 'find /var/www/html -type f -exec chmod 644 {} \;' >> /usr/local/bin/docker-entrypoint.sh && \
+    echo 'exec apache2-foreground' >> /usr/local/bin/docker-entrypoint.sh && \
+    chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Comando de inicio
-CMD ["apache2-foreground"]
+CMD ["/usr/local/bin/docker-entrypoint.sh"]

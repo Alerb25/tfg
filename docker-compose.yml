@@ -7,22 +7,23 @@ services:
     container_name: tfg_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: tfg_notas
-      POSTGRES_USER: tfg_user
-      POSTGRES_PASSWORD: tfg_secure_password_2024
+      POSTGRES_DB: proyecto
+      POSTGRES_USER: proyecto
+      POSTGRES_PASSWORD: proyecto
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./Base de Datos/BDD.sql:/docker-entrypoint-initdb.d:ro
+      - "./Base_de_Datos/BDD.sql:/docker-entrypoint-initdb.d/01-init.sql:ro"
     ports:
       - "5433:5432"
     networks:
       - tfg_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tfg_user -d tfg_notas"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -h localhost -p 5432 -U proyecto -d proyecto || pg_isready -h localhost -p 5432"]
+      interval: 15s
+      timeout: 10s
       retries: 5
+      start_period: 30s
 
   # Contenedor de Apache + PHP
   web:
